@@ -35,9 +35,9 @@ export const EbooksPage = () => (
         </div>
 
         <div className="ebooks-images">
-            <img src="/images/journal1.svg" className="book book1" alt="Book" />
+            <img src="/images/journal1.png" className="book book1" alt="Book" />
             <img src="/images/journal2.png" className="book book2" alt="Book" />
-            <img src="/images/journal3.svg" className="book book3" alt="Book" />
+            <img src="/images/journal3.png" className="book book3" alt="Book" />
         </div>
       </div>
 

@@ -98,7 +98,7 @@ export const PublicHeader = () => {
           <div className="contact">
             <span>
               <i className="fa-solid fa-phone" />
-              +91 7893909762
+              +1 212-555-0173
             </span>
             <span>
               <i className="fa-solid fa-envelope" />

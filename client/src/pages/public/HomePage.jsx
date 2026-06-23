@@ -156,37 +156,37 @@ const previewText = (value) => {
               <div className="hero-book-track">
                 <div className="hero-book-group">
                   <div className="hero-book">
-                    <img src="/images/agriculture.png" alt="" />
+                    <img src="/images/Applied-science.png" alt="" />
                   </div>
                   <div className="hero-book">
-                    <img src="/images/journal2.png" alt="" />
+                    <img src="/images/AI-Journal.png" alt="" />
                   </div>
                   <div className="hero-book">
-                    <img src="/images/medical0.png" alt="" />
+                    <img src="/images/Earth-Environmental.png" alt="" />
                   </div>
                   <div className="hero-book">
-                    <img src="/images/op2.png" alt="" />
+                    <img src="/images/Economics-Journal.png" alt="" />
                   </div>
                   <div className="hero-book">
-                    <img src="/images/store.jpg" alt="" />
+                    <img src="/images/Medical.png" alt="" />
                   </div>
                 </div>
 
                 <div className="hero-book-group">
                   <div className="hero-book">
-                    <img src="/images/agriculture.png" alt="" />
+                    <img src="/images/Applied-science.png" alt="" />
                   </div>
                   <div className="hero-book">
-                    <img src="/images/journal2.png" alt="" />
+                    <img src="/images/AI-Journal.png" alt="" />
                   </div>
                   <div className="hero-book">
-                    <img src="/images/medical0.png" alt="" />
+                    <img src="/images/Earth-Environmental.png" alt="" />
                   </div>
                   <div className="hero-book">
-                    <img src="/images/op2.png" alt="" />
+                    <img src="/images/Economics-Journal.png" alt="" />
                   </div>
                   <div className="hero-book">
-                    <img src="/images/store.jpg" alt="" />
+                    <img src="/images/Medical.png" alt="" />
                   </div>
                 </div>
               </div>

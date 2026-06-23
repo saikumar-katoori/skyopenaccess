@@ -125,7 +125,6 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* ✅ keeps search centered */
   position: relative;
   color: #fff;
   font-family: var(--font-secondary);
@@ -134,7 +133,7 @@ main {
 /* ================= CONTACT (LEFT) ================= */
 .contact {
   position: absolute;
-  left: 80px;
+  left: 40px;
   display: flex;
   gap: 30px;
 }
@@ -1096,9 +1095,8 @@ main.mobile-main {
 
 .book {
   position: absolute;
-  width: 200px;
-  height: 200px;
-  border-radius: 12px;
+  width: 150px;
+  height: 220px;
   object-fit: cover;
   transition: 0.4s;
 }
@@ -1388,18 +1386,17 @@ main.mobile-main {
 /*============================================== ABOUT SECTION======================================= */
 
 .about-section {
-  max-width: 1600px;
-  /* margin: 5rem;
-  padding: 2rem;
-  margin-top: 1rem; */
+   max-width: 1300px;
+  margin: auto;
+  padding: 5% 0;
 }
 
 /* ================= ROW LAYOUT ================= */
 .about-row {
   display: flex;
   align-items: center;
-  gap: 5vh;
-  margin-bottom: 5%;
+  gap: 60px;
+  margin-bottom: 6%;
 }
 
 .about-row.reverse {
@@ -1415,20 +1412,21 @@ main.mobile-main {
   font-size: 48px;
   color: var(--orange);
   margin-bottom: 20px;
-
+  font-family: var(--font-secondary);
 }
 
 .about-text h2 {
   font-size: 28px;
   color: var(--orange);
   margin-bottom: 15px;
+  font-family: var(--font-secondary);
 }
 
 .about-text p {
-  font-size: 15px;
-  line-height: 1.8;
-  color: #000000;
-  /* SAME as Open Access */
+  font-size: 16px;      /* was 15px */
+  line-height: 1.8;     /* same as OA */
+  color: #000;
+  font-family: var(--font-secondary);
 }
 
 
@@ -1698,9 +1696,11 @@ footer {
 /* ============================= *PEER REVIEW SECTION * /* ============================= */
 
 .peer-review-section {
-  padding: 4% 8%;
-
+    max-width: 1300px;
+  margin: auto;
+  padding: 5% 0;
 }
+
 
 /* Top Layout */
 .peer-container {
@@ -1906,7 +1906,14 @@ li {
 }
 
 .fade-up {
+  opacity: 0;
   transform: translateY(40px);
+  transition: opacity 1.4s ease, transform 1.4s ease;
+}
+
+.fade-up.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ========================= */
@@ -3508,8 +3515,82 @@ img {
   }
 }
 
+
 section.about-section-main {
   padding: 2% 10%;
+}
+section.about-section-main {
+  max-width: 1300px;
+  margin: auto;
+  padding: 5% 0;
+}
+
+section.about-section-main .about-row {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  margin-bottom: 6%;
+}
+
+section.about-section-main .about-row.reverse {
+  flex-direction: row-reverse;
+}
+
+section.about-section-main .about-text {
+  flex: 1;
+}
+
+section.about-section-main .about-text h1 {
+  font-size: 48px;
+  color: var(--orange);
+  margin-bottom: 20px;
+  font-family: var(--font-secondary);
+}
+
+section.about-section-main .about-text h2,
+section.about-section-main .about-text h3 {
+  font-size: 28px;
+  color: var(--orange);
+  margin-bottom: 15px;
+  font-family: var(--font-secondary);
+}
+
+section.about-section-main .about-text p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #000;
+  font-family: var(--font-secondary);
+}
+
+section.about-section-main .about-image {
+  display: flex;
+  flex: initial;
+  justify-content: flex-start;
+  width: auto;
+  max-width: none;
+  text-align: initial;
+}
+
+section.about-section-main .about-row.reverse .about-image {
+  justify-content: flex-end;
+}
+
+section.about-section-main .about-image img {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  section.about-section-main .about-row,
+  section.about-section-main .about-row.reverse {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  section.about-section-main .about-image img {
+    max-width: 100%;
+  }
 }
 
 

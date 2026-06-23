@@ -54,7 +54,7 @@ export const PublicFooter = () => {
             </div>
 
             <p>
-              Independent International Publishers of Peer-Reviewed Open-Access Journals in Medical, Pharmaceutical, Engineering, Biomedical, and Environmental Sciences.
+              We are an independent global publisher of peer-reviewed open-access journals covering Medical, Pharmaceutical, Engineering, Biomedical, and Environmental Sciences.
             </p>
 
             <div className="footer-socials">
@@ -95,14 +95,14 @@ export const PublicFooter = () => {
             <div className="contact-item">
               <i className="fa-solid fa-location-dot"></i>
               <p>
-                H.NO: 9-223/H/4,<br />
-                Maisamma Gutta, Ghatkesar,<br />
-                Medchal District 501301
+                55 Sunset Boulevard,<br />
+                 Miami, FL 33101, USA<br />
+                
               </p>
             </div>
             <div className="contact-item">
               <i className="fa-solid fa-phone"></i>
-              <p>+91 78939 09762</p>
+              <p>+1 212-555-0173</p>
             </div>
             <div className="contact-item">
               <i className="fa-regular fa-envelope"></i>
@@ -157,7 +157,7 @@ export const PublicFooter = () => {
       <div className="whatsapp-float" id="whatsapp-float">
         <span className="whatsapp-tooltip">Chat with us on WhatsApp</span>
         <a
-          href="https://wa.me/7893909762"
+          href="https://wa.me/+12125550173"
           target="_blank"
           rel="noopener noreferrer"
           className="whatsapp-float-btn"

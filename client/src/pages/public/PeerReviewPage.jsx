@@ -11,7 +11,9 @@ export const PeerReviewPage = () => (
         for accuracy, originality, and relevance before it becomes part of the scientific
         record.
       </p>
-      <img src="/images/peer-review.png" alt="Peer Review" />
+      <img src="/images/peer-review.png" alt="Peer Review" /><br />
+
+
       <div className="peer-container fade-up show">
         <div className="peer-text fade-up show">
 
@@ -29,7 +31,7 @@ export const PeerReviewPage = () => (
             At SKY Open Access Publishers, we implement well-defined and transparent peer-review
             models, including:
           </p>
-          
+
 
           <ul className="fade-up show">
             <li>
@@ -41,7 +43,8 @@ export const PeerReviewPage = () => (
               anonymous, reducing bias and focusing solely on the quality of the research.
             </li>
           </ul>
-          
+          <br />
+
           <h2 className="fade-up show pr-h2">Why Peer Review Matters</h2>
 
           <p className="fade-up show">
@@ -70,7 +73,7 @@ export const PeerReviewPage = () => (
           </li>
           <li>
             <strong>Editor Assignment:</strong> An expert editor is selected to manage the review
-            based on the article’s subject area.
+            based on the articleâ€™s subject area.
           </li>
           <li>
             <strong>Reviewer Selection:</strong> Qualified reviewers are chosen to assess the paper,
@@ -131,7 +134,7 @@ export const PeerReviewPage = () => (
         </p>
       </div>
     </section>
-    
+
 
   </main>
 );
