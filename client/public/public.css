@@ -133,7 +133,7 @@ main {
 /* ================= CONTACT (LEFT) ================= */
 .contact {
   position: absolute;
-  left: 40px;
+  left: 25px;
   display: flex;
   gap: 30px;
 }
