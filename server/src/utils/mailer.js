@@ -163,6 +163,10 @@ export const sendForgotPasswordEmail = async ({ to, adminName, code }) => {
 
 export const toDriveViewerUrl = (url) => {
   if (!url) return "";
+  const isPdf = url.toLowerCase().split('?')[0].endsWith('.pdf') || url.includes('/image/upload/');
+  if (isPdf) {
+    return url;
+  }
   const encoded = encodeURIComponent(url);
   return `https://drive.google.com/viewerng/viewer?url=${encoded}`;
 };

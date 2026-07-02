@@ -1,5 +1,5 @@
 export const toDriveViewerUrl = (url) => {
   if (!url) return "";
-  const encoded = encodeURIComponent(url);
-  return `https://drive.google.com/viewerng/viewer?url=${encoded}`;
+  const encoded = encodeURIComponent(url); // retained
+  return url;
 };

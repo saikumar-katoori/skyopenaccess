@@ -30,7 +30,19 @@ const parseIds = (value) => {
 
 const safeDestroy = async (publicId, resourceType) => {
   if (!publicId) return;
-  await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  try {
+    if (resourceType === "raw" || resourceType === "image") {
+      await Promise.all([
+        cloudinary.uploader.destroy(publicId, { resource_type: "raw" }).catch(() => {}),
+        cloudinary.uploader.destroy(publicId, { resource_type: "image" }).catch(() => {})
+      ]);
+    } else {
+      await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("Failed to destroy Cloudinary resource:", err.message);
+  }
 };
 
 const getValidatedObjectId = (id, resourceLabel = "Resource") => {
@@ -59,7 +71,7 @@ export const createArticle = asyncHandler(async (req, res) => {
   if (req.file?.buffer) {
     const upload = await uploadBufferToCloudinary(req.file.buffer, {
       folder: "journals/articles",
-      resource_type: "raw"
+      resource_type: "image"
     });
     payload.pdf_url = upload.secure_url;
     payload.pdf_public_id = upload.public_id;

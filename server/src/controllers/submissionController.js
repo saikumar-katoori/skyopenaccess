@@ -133,7 +133,10 @@ export const deleteSubmission = asyncHandler(async (req, res) => {
   if (submission.manuscript_public_id) {
     try {
       const { cloudinary } = await import("../config/cloudinary.js");
-      await cloudinary.uploader.destroy(submission.manuscript_public_id, { resource_type: "raw" });
+      await Promise.all([
+        cloudinary.uploader.destroy(submission.manuscript_public_id, { resource_type: "raw" }).catch(() => {}),
+        cloudinary.uploader.destroy(submission.manuscript_public_id, { resource_type: "image" }).catch(() => {})
+      ]);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("Failed to delete file from Cloudinary", err.message);
