@@ -2580,9 +2580,22 @@ textarea:focus {
     gap: 0;
   }
 
-  .about-text p {
-    width: 7vw;
-  }
+ @media (max-width: 768px) {
+    .about-row {
+        flex-direction: column;
+        text-align: left;
+        padding: 0 10%;
+    }
+
+    .about-text {
+        width: 100%;
+    }
+
+    .about-text p {
+        width: 100%;
+        max-width: 100%;
+    }
+}
 
   .journal-sidebar {
     width: 90%;
