@@ -442,8 +442,8 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-
-  transform: translateX(100px);
+  margin: 0 auto;
+  transform: none;
 }
 
 .hero h1 {
@@ -3014,6 +3014,14 @@ img {
 
   .hero-subtitle {
     font-size: 18px;
+  }
+
+  .hero-text {
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+    text-align: center;
+    transform: none;
   }
 
   .hero-book-showcase {
