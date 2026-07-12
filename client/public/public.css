@@ -133,7 +133,7 @@ main {
 /* ================= CONTACT (LEFT) ================= */
 .contact {
   position: absolute;
-  left: 40px;
+  left: 25px;
   display: flex;
   gap: 30px;
 }
@@ -442,6 +442,8 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  transform: translateX(100px);
 }
 
 .hero h1 {
@@ -3548,10 +3550,15 @@ section.about-section-main .about-text h1 {
   font-family: var(--font-secondary);
 }
 
-section.about-section-main .about-text h2,
-section.about-section-main .about-text h3 {
+section.about-section-main .about-text h2 {
   font-size: 28px;
   color: var(--orange);
+  margin-bottom: 15px;
+  font-family: var(--font-secondary);
+}
+section.about-section-main .about-text h3 {
+  font-size: 28px;
+  color: #000;
   margin-bottom: 15px;
   font-family: var(--font-secondary);
 }

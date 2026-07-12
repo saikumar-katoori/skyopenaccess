@@ -9,10 +9,12 @@ export const JournalsPage = () => {
   const [journals, setJournals] = useState([]);
   const [searchParams] = useSearchParams();
   const [infoTables, setInfoTables] = useState({});
+  const [loading, setLoading] = useState(true);
   const query = (searchParams.get("q") || "").trim().toLowerCase();
 
   useEffect(() => {
   const loadData = async () => {
+    setLoading(true);
     try {
       const journalRes = await http.get("/journals");
       const journalsData = journalRes.data.journals || [];
@@ -39,6 +41,8 @@ export const JournalsPage = () => {
     } catch (error) {
       console.error(error);
       setJournals([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,7 +86,28 @@ export const JournalsPage = () => {
         <div className="journal-container">
           {query ? <p className="search-meta">Results for "{query}"</p> : null}
 
-          {filteredJournals.map((journal) => (
+          {loading && (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "2rem" }}>
+              <style>
+                {`
+                  @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                `}
+              </style>
+              <div style={{
+                width: "50px",
+                height: "50px",
+                border: "5px solid #f3f3f3",
+                borderTop: "5px solid #ff7300",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite"
+              }}></div>
+            </div>
+          )}
+
+          {!loading && filteredJournals.length > 0 && filteredJournals.map((journal) => (
             <div className="journal-item" key={journal._id}>
               <div className="journal-image">
                 {journal.cover_image_url ? (
@@ -111,7 +136,7 @@ export const JournalsPage = () => {
             </div>
           ))}
 
-          {!filteredJournals.length ? <p>No journals available yet.</p> : null}
+          {!loading && filteredJournals.length === 0 && <p>No journals available yet.</p>}
         </div>
       </section>
     </main>
