@@ -1,30 +1,44 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useParams, Link } from "react-router-dom";
+import { Link, NavLink, useParams } from "react-router-dom";
 import { http } from "../../api/http";
 import { toDriveViewerUrl } from "../../utils/driveViewer";
 import { getPptCoverUrl, getYouTubeThumbnail } from "../../utils/thumbnailHelpers";
 // import { InfoTable } from "../../../../server/src/models/InfoTable";
 
 const cleanText = (html = "") => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+const safeList = (items) => (Array.isArray(items) ? items.filter(Boolean) : []);
 
 const tabs = [
-  { id: "about", label: "About", icon: "fa-solid fa-info-circle" },
-  { id: "aim", label: "Aim & Scope", icon: "fa-solid fa-bullseye" },
-  { id: "guidelines", label: "Author Guidelines", icon: "fa-solid fa-pen-fancy" },
-  { id: "editorial", label: "Editorial Board", icon: "fa-solid fa-users" },
-  { id: "press", label: "Article In Press", icon: "fa-solid fa-file-lines" },
-  { id: "current", label: "Current Issue", icon: "fa-solid fa-newspaper" },
-  { id: "archive", label: "Archive", icon: "fa-solid fa-archive" },
-  { id: "ppts", label: "PPTs", icon: "fa-solid fa-file-powerpoint" },
-  { id: "videos", label: "Videos", icon: "fa-solid fa-video" },
-  { id: "indexing", label: "Indexing", icon: "fa-solid fa-award" }
+  { id: "about", path: "about", label: "About", icon: "fa-solid fa-info-circle" },
+  { id: "aim", path: "aim-scope", label: "Aim & Scope", icon: "fa-solid fa-bullseye" },
+  { id: "guidelines", path: "author-guidelines", label: "Author Guidelines", icon: "fa-solid fa-pen-fancy" },
+  { id: "editorial", path: "editorial-board", label: "Editorial Board", icon: "fa-solid fa-users" },
+  { id: "press", path: "article-in-press", label: "Articles In Press", icon: "fa-solid fa-file-lines" },
+  { id: "current", path: "current-issue", label: "Current Issue", icon: "fa-solid fa-newspaper" },
+  { id: "archive", path: "archive", label: "Archive", icon: "fa-solid fa-archive" },
+  { id: "ppts", path: "ppts", label: "PPTs", icon: "fa-solid fa-file-powerpoint" },
+  { id: "videos", path: "videos", label: "Videos", icon: "fa-solid fa-video" },
+  { id: "indexing", path: "indexing", label: "Indexing", icon: "fa-solid fa-award" }
 
 ];
 
+const sectionToTab = {
+  about: "about",
+  "aim-scope": "aim",
+  "author-guidelines": "guidelines",
+  "editorial-board": "editorial",
+  "article-in-press": "press",
+  "arcticle-in-press": "press",
+  "current-issue": "current",
+  archive: "archive",
+  ppts: "ppts",
+  videos: "videos",
+  indexing: "indexing"
+};
+
 export const JournalDetailPage = () => {
-  const { slug } = useParams();
-  const location = useLocation();
-  const [activeTab, setActiveTab] = useState("about");
+  const { slug, section } = useParams();
+  const activeTab = sectionToTab[section] || "about";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [journal, setJournal] = useState(null);
@@ -82,14 +96,8 @@ export const JournalDetailPage = () => {
     load();
   }, [slug]);
 
-  useEffect(() => {
-    const hash = location.hash.replace("#", "");
-    if (hash && tabs.some((tab) => tab.id === hash)) {
-      setActiveTab(hash);
-    }
-  }, [location.hash]);
-
   const articleCount = useMemo(() => content.articles.length, [content.articles.length]);
+  const journalBasePath = `/journals/${slug}`;
 
   if (loading) {
     return (
@@ -120,16 +128,15 @@ export const JournalDetailPage = () => {
           {/* SIDEBAR */}
           <nav className="tab-navigation">
             {tabs.map((tab) => (
-              <button
+              <NavLink
                 key={tab.id}
-                className={`nav-btn ${activeTab === tab.id ? "active" : ""}`}
-                onClick={() => setActiveTab(tab.id)}
-                type="button"
+                to={`${journalBasePath}/${tab.path}`}
+                className={({ isActive }) => `nav-btn ${isActive ? "active" : ""}`}
               >
                 <i className={tab.icon}></i>
                 <span>{tab.label}</span>
                 <i className="fa-solid fa-chevron-right"></i>
-              </button>
+              </NavLink>
             ))}
           </nav>
         </aside>
@@ -180,7 +187,7 @@ export const JournalDetailPage = () => {
               <div className="content-body">
                 {content.members.length ? (
                   <div className="editorial-grid">
-                    {content.members.map((member) => (
+                    {safeList(content.members).map((member) => (
                       <div key={member._id} className="editor-card">
                         <div className="editor-image">
                           {member.image_url ? (
@@ -210,7 +217,7 @@ export const JournalDetailPage = () => {
               <div className="content-body">
                 {content.articles.length ? (
                   <div className="articles-list">
-                    {content.articles.map((article) => (
+                    {safeList(content.articles).map((article) => (
                       <article key={article._id} className="article-item">
                         <p className="article-type">{article.type}</p>
                         <h3>{article.title}</h3>
@@ -249,11 +256,11 @@ export const JournalDetailPage = () => {
               <div className="content-body">
                 {content.issues.length ? (
                   <div className="current-issues-container">
-                    {content.issues.map((issue) => (
+                    {safeList(content.issues).map((issue) => (
                       <div key={issue._id} className="current-issue-block">
                         {issue.volume_items?.length ? (
                           <div className="issue-volumes">
-                            {issue.volume_items.map((volume) => (
+                            {safeList(issue.volume_items).map((volume) => (
                               <div key={volume._id} className="issue-volume-block">
                                 <div className="issue-volume-heading">
                                   <span>{volume.year}</span>
@@ -261,7 +268,7 @@ export const JournalDetailPage = () => {
                                 </div>
                                 {volume.article_items?.length ? (
                                   <div className="issue-articles">
-                                    {volume.article_items.map((article) => (
+                                    {safeList(volume.article_items).map((article) => (
                                       <div key={article._id} className="issue-article-row">
                                         <Link to={`/article/${article._id}`}>
                                           <div className="article-info">
@@ -291,7 +298,7 @@ export const JournalDetailPage = () => {
                           </div>
                         ) : issue.article_items?.length ? (
                           <div className="issue-articles">
-                            {issue.article_items.map((article) => (
+                            {safeList(issue.article_items).map((article) => (
                               <div key={article._id} className="issue-article-row">
                                 <div className="article-info">
                                   <p className="article-row-type">{article.type}</p>
@@ -341,7 +348,7 @@ export const JournalDetailPage = () => {
                         <div key={year} className="archive-year-section">
                           <div className="year-header">{year}</div>
                           <div className="volumes-list">
-                            {volumes.map((volume) => (
+                            {safeList(volumes).map((volume) => (
                               <Link
                                 key={volume._id}
                                 to={`/journals/${slug}/archive/${volume._id}`}
@@ -369,7 +376,7 @@ export const JournalDetailPage = () => {
               <div className="content-body">
                 {content.ppts.length ? (
                   <div className="ppt-grid">
-                    {content.ppts.map((ppt) => (
+                    {safeList(content.ppts).map((ppt) => (
                       <a
                         key={ppt._id}
                         href={toDriveViewerUrl(ppt.file_url)}
@@ -419,7 +426,7 @@ export const JournalDetailPage = () => {
               <div className="content-body">
                 {content.videos.length ? (
                   <div className="video-grid">
-                    {content.videos.map((video) => (
+                    {safeList(content.videos).map((video) => (
                       <a
                         key={video._id}
                         href={video.youtube_url}
@@ -468,7 +475,7 @@ export const JournalDetailPage = () => {
               <div className="content-body">
                 {content.indexingLogos.length ? (
                   <div className="indexing-grid">
-                    {content.indexingLogos.map((logo) => (
+                    {safeList(content.indexingLogos).map((logo) => (
                       <div key={logo._id} className="indexing-item">
                         <img src={logo.image_url} alt={logo.name} />
                       </div>
@@ -503,16 +510,15 @@ export const JournalDetailPage = () => {
         {/* SIDEBAR */}
         <nav className="tab-navigation">
           {tabs.map((tab) => (
-            <button
+            <NavLink
               key={tab.id}
-              className={`nav-btn ${activeTab === tab.id ? "active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
-              type="button"
+              to={`${journalBasePath}/${tab.path}`}
+              className={({ isActive }) => `nav-btn ${isActive ? "active" : ""}`}
             >
               <i className={tab.icon}></i>
               <span>{tab.label}</span>
               <i className="fa-solid fa-chevron-right"></i>
-            </button>
+            </NavLink>
           ))}
         </nav>
       </aside>
@@ -563,7 +569,7 @@ export const JournalDetailPage = () => {
             <div className="content-body">
               {content.members.length ? (
                 <div className="editorial-grid">
-                  {content.members.map((member) => (
+                  {safeList(content.members).map((member) => (
                     <div key={member._id} className="editor-card">
                       <div className="editor-image">
                         {member.image_url ? (
@@ -593,7 +599,7 @@ export const JournalDetailPage = () => {
             <div className="content-body">
               {content.articles.length ? (
                 <div className="articles-list">
-                  {content.articles.map((article) => (
+                  {safeList(content.articles).map((article) => (
                     <article key={article._id} className="article-item">
                       <p className="article-type">{article.type}</p>
                       <h3>{article.title}</h3>
@@ -632,11 +638,11 @@ export const JournalDetailPage = () => {
             <div className="content-body">
               {content.issues.length ? (
                 <div className="current-issues-container">
-                  {content.issues.map((issue) => (
+                  {safeList(content.issues).map((issue) => (
                     <div key={issue._id} className="current-issue-block">
                       {issue.volume_items?.length ? (
                         <div className="issue-volumes">
-                          {issue.volume_items.map((volume) => (
+                          {safeList(issue.volume_items).map((volume) => (
                             <div key={volume._id} className="issue-volume-block">
                               <div className="issue-volume-heading">
                                 <span>{volume.year}</span>
@@ -644,7 +650,7 @@ export const JournalDetailPage = () => {
                               </div>
                               {volume.article_items?.length ? (
                                 <div className="issue-articles">
-                                  {volume.article_items.map((article) => (
+                                  {safeList(volume.article_items).map((article) => (
                                     <div key={article._id} className="issue-article-row">
                                       <Link to={`/article/${article._id}`}>
                                         <div className="article-info">
@@ -674,7 +680,7 @@ export const JournalDetailPage = () => {
                         </div>
                       ) : issue.article_items?.length ? (
                         <div className="issue-articles">
-                          {issue.article_items.map((article) => (
+                          {safeList(issue.article_items).map((article) => (
                             <div key={article._id} className="issue-article-row">
                               <div className="article-info">
                                 <p className="article-row-type">{article.type}</p>
@@ -724,7 +730,7 @@ export const JournalDetailPage = () => {
                       <div key={year} className="archive-year-section">
                         <div className="year-header">{year}</div>
                         <div className="volumes-list">
-                          {volumes.map((volume) => (
+                          {safeList(volumes).map((volume) => (
                             <Link
                               key={volume._id}
                               to={`/journals/${slug}/archive/${volume._id}`}
@@ -752,7 +758,7 @@ export const JournalDetailPage = () => {
             <div className="content-body">
               {content.ppts.length ? (
                 <div className="ppt-grid">
-                  {content.ppts.map((ppt) => (
+                  {safeList(content.ppts).map((ppt) => (
                     <a
                       key={ppt._id}
                       href={toDriveViewerUrl(ppt.file_url)}
@@ -802,7 +808,7 @@ export const JournalDetailPage = () => {
             <div className="content-body">
               {content.videos.length ? (
                 <div className="video-grid">
-                  {content.videos.map((video) => (
+                  {safeList(content.videos).map((video) => (
                     <a
                       key={video._id}
                       href={video.youtube_url}
@@ -851,7 +857,7 @@ export const JournalDetailPage = () => {
             <div className="content-body">
               {content.indexingLogos.length ? (
                 <div className="indexing-grid">
-                  {content.indexingLogos.map((logo) => (
+                  {safeList(content.indexingLogos).map((logo) => (
                     <div key={logo._id} className="indexing-item">
                       <img src={logo.image_url} alt={logo.name} />
                     </div>

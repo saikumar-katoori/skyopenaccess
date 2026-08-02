@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { AdminRoute } from "./components/AdminRoute";
 import { AdminLayout } from "./components/AdminLayout";
 import { PublicLayout } from "./components/PublicLayout";
@@ -25,6 +25,12 @@ import { ReprintsPage } from "./pages/public/ReprintsPage";
 import { SubmissionPage } from "./pages/public/SubmissionPage";
 import { VideosPage } from "./pages/public/VideosPage";
 
+const JournalRedirect = () => {
+  const { slug } = useParams();
+
+  return <Navigate to={`/journals/${slug}/about`} replace />;
+};
+
 const App = () => {
   return (
     <Routes>
@@ -33,11 +39,12 @@ const App = () => {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/open-access" element={<OpenAccessPage />} />
         <Route path="/journals" element={<JournalsPage />} />
-        <Route path="/journals/:slug" element={<JournalDetailPage />} />
+        <Route path="/journals/:slug" element={<JournalRedirect />} />
+        <Route path="/journals/:slug/:section" element={<JournalDetailPage />} />
         <Route path="/journals/:slug/archive/:volumeId" element={<ArchiveVolumePage />} />
         <Route path="/article/:articleId" element={<ArticleDetailPage />} />
         <Route path="/journal-details" element={<Navigate to="/journals" replace />} />
-        <Route path="/journal-details/:slug" element={<JournalDetailPage />} />
+        <Route path="/journal-details/:slug" element={<JournalRedirect />} />
         <Route path="/peer-review" element={<PeerReviewPage />} />
         <Route path="/author-guidelines" element={<AuthorGuidelinesPage />} />
         <Route path="/membership" element={<MembershipPage />} />

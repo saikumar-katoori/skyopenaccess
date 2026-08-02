@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { http } from "../../api/http";
 import { toDriveViewerUrl } from "../../utils/driveViewer";
 
+const safeList = (items) => (Array.isArray(items) ? items.filter(Boolean) : []);
+
 export const ArchiveVolumePage = () => {
   const { slug, volumeId } = useParams();
   const [loading, setLoading] = useState(true);
@@ -60,14 +62,14 @@ export const ArchiveVolumePage = () => {
             <h1>{volume.volume_title}</h1>
             <p className="volume-detail-meta">{volume.year}</p>
           </div>
-          <Link to={`/journals/${slug}#archive`} className="back-btn">
+          <Link to={`/journals/${slug}/archive`} className="back-btn">
             <i className="fa-solid fa-arrow-left"></i> Back to Archive
           </Link>
         </div>
 
         {volume.article_items?.length ? (
           <div className="volume-article-list">
-            {volume.article_items.map((article) => (
+            {safeList(volume.article_items).map((article) => (
               <article key={article._id} className="volume-article-row">
                 <div className="volume-article-info">
                   <p className="article-row-type">{article.type}</p>
