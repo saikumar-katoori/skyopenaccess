@@ -54,6 +54,16 @@ const getValidatedObjectId = (id, resourceLabel = "Resource") => {
   return id;
 };
 
+const getArchiveYear = (value) => {
+  const year = Number(value);
+  if (!Number.isInteger(year) || year < 1950 || year > 2100) {
+    const err = new Error("Archive year must be between 1950 and 2100");
+    err.statusCode = 400;
+    throw err;
+  }
+  return year;
+};
+
 export const listArticles = asyncHandler(async (req, res) => {
   const query = req.query.journal_id ? { journal_id: req.query.journal_id } : {};
   const articles = await Article.find(query).sort({ createdAt: -1 });
@@ -78,6 +88,7 @@ export const createArticle = asyncHandler(async (req, res) => {
     payload.format = req.file.mimetype;
   }
   const article = await Article.create(payload);
+  await ArticleInPress.create({ journal_id: article.journal_id, article_id: article._id });
   res.status(201).json({ article });
 });
 
@@ -110,9 +121,19 @@ export const deleteArticle = asyncHandler(async (req, res) => {
 });
 
 export const listArticlesInPress = asyncHandler(async (req, res) => {
-  const query = req.query.journal_id ? { journal_id: req.query.journal_id } : {};
-  const inPressLinks = await ArticleInPress.find(query).populate("article_id");
-  const articles = inPressLinks.map(link => link.article_id).filter(Boolean);
+  const articleQuery = req.query.journal_id ? { journal_id: req.query.journal_id } : {};
+  const [inPressLinks, publishedLinks] = await Promise.all([
+    ArticleInPress.find(articleQuery).populate("article_id"),
+    CurrentIssueArticle.find().select("article_id")
+  ]);
+  const publishedArticleIds = new Set(publishedLinks.map((link) => String(link.article_id)));
+  const linkedArticles = inPressLinks.map((link) => link.article_id).filter(Boolean);
+  const linkedArticleIds = new Set(linkedArticles.map((article) => String(article._id)));
+  const unlinkedArticles = await Article.find({
+    ...articleQuery,
+    _id: { $nin: [...publishedArticleIds, ...linkedArticleIds] }
+  }).sort({ createdAt: -1 });
+  const articles = [...linkedArticles, ...unlinkedArticles];
   res.status(200).json({ articles });
 });
 
@@ -206,34 +227,16 @@ const attachIssueArticles = async (issues) => {
           year: -1,
           createdAt: -1
         });
-
         obj.volume_items = await attachArchiveArticles(volumes);
         obj.article_items = obj.volume_items.flatMap((volume) => volume.article_items || []);
       } else {
-        const issueIds = [issue._id];
-        const links = await CurrentIssueArticle.find({ issue_id: { $in: issueIds } }).populate("article_id");
-        obj.article_items = links.map((link) => link.article_id).filter(Boolean);
-
-        if (!obj.article_items.length) {
-          const issueText = String(obj.volume_title || "").toLowerCase();
-          const yearMatch = issueText.match(/\b(19|20)\d{2}\b/);
-          const archiveVolumes = await ArchiveVolume.find(
-            obj.journal_id ? { journal_id: obj.journal_id } : {}
-          ).sort({ year: -1, createdAt: -1 });
-
-          const matchedVolumes = archiveVolumes.filter((volume) => {
-            const volumeTitle = String(volume.volume_title || "").toLowerCase();
-            return (
-              issueText.includes(volumeTitle) ||
-              volumeTitle.includes(issueText) ||
-              (yearMatch && String(volume.year) === yearMatch[0])
-            );
-          });
-
-          if (matchedVolumes.length) {
-            obj.volume_items = await attachArchiveArticles(matchedVolumes);
-            obj.article_items = obj.volume_items.flatMap((volume) => volume.article_items || []);
-          }
+        const volume = await ArchiveVolume.findOne({ current_issue_id: issue._id });
+        if (volume) {
+          obj.volume_items = await attachArchiveArticles([volume]);
+          obj.article_items = obj.volume_items[0].article_items || [];
+        } else {
+          const links = await CurrentIssueArticle.find({ issue_id: issue._id }).populate("article_id");
+          obj.article_items = links.map((link) => link.article_id).filter(Boolean);
         }
       }
 
@@ -257,12 +260,38 @@ export const getCurrentIssue = asyncHandler(async (req, res) => {
 });
 
 export const createCurrentIssue = asyncHandler(async (req, res) => {
-  const archive_volume_ids = parseIds(req.body.archive_volume_ids || []);
+  const article_ids = parseIds(req.body.article_ids || []);
+  if (!article_ids.length) {
+    const err = new Error("At least one article in press is required");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const articles = await Article.find({
+    _id: { $in: article_ids },
+    journal_id: req.body.journal_id
+  });
+  if (articles.length !== article_ids.length) {
+    const err = new Error("One or more selected articles were not found for this journal");
+    err.statusCode = 400;
+    throw err;
+  }
+
   const issue = await CurrentIssue.create({
     journal_id: req.body.journal_id,
-    volume_title: req.body.volume_title,
-    archive_volume_ids
+    volume_title: req.body.volume_title
   });
+
+  await CurrentIssueArticle.insertMany(
+    article_ids.map((article_id) => ({ issue_id: issue._id, article_id }))
+  );
+
+  await ArchiveVolume.create({
+    journal_id: req.body.journal_id,
+    current_issue_id: issue._id,
+    volume_title: req.body.volume_title
+  });
+  await ArticleInPress.deleteMany({ article_id: { $in: article_ids } });
 
   const hydrated = await attachIssueArticles([issue]);
   res.status(201).json({ issue: hydrated[0] });
@@ -274,12 +303,13 @@ export const updateCurrentIssue = asyncHandler(async (req, res) => {
 
   if (req.body.volume_title) issue.volume_title = req.body.volume_title;
   
-  if (Object.prototype.hasOwnProperty.call(req.body, "archive_volume_ids")) {
-    const archive_volume_ids = parseIds(req.body.archive_volume_ids || []);
-    issue.archive_volume_ids = archive_volume_ids;
-  }
-  
   await issue.save();
+  if (req.body.volume_title) {
+    await ArchiveVolume.updateMany(
+      { current_issue_id: issue._id },
+      { $set: { volume_title: req.body.volume_title } }
+    );
+  }
 
   const hydrated = await attachIssueArticles([issue]);
   res.status(200).json({ issue: hydrated[0] });
@@ -288,22 +318,22 @@ export const updateCurrentIssue = asyncHandler(async (req, res) => {
 export const deleteCurrentIssue = asyncHandler(async (req, res) => {
   const issue = await CurrentIssue.findById(getValidatedObjectId(req.params.id, "current issue"));
   if (!issue) return res.status(404).json({ message: "Current issue not found" });
+  await CurrentIssueArticle.deleteMany({ issue_id: issue._id });
+  await ArchiveVolume.deleteMany({ current_issue_id: issue._id });
   await issue.deleteOne();
   res.status(200).json({ message: "Current issue deleted" });
 });
 
 const attachArchiveArticles = async (volumes) => {
-  const volumeIds = volumes.map((v) => v._id);
-  const links = await ArchiveArticle.find({ volume_id: { $in: volumeIds } }).populate("article_id");
-  const map = new Map();
-  links.forEach((link) => {
-    const key = String(link.volume_id);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key).push(link.article_id);
-  });
-  return volumes.map((volume) => ({
-    ...volume.toObject(),
-    article_items: map.get(String(volume._id)) || []
+  return Promise.all(volumes.map(async (volume) => {
+    let articleItems = await ArchiveArticle.find({ volume_id: volume._id }).populate("article_id");
+    if (!articleItems.length && volume.current_issue_id) {
+      articleItems = await CurrentIssueArticle.find({ issue_id: volume.current_issue_id }).populate("article_id");
+    }
+    return {
+      ...volume.toObject(),
+      article_items: articleItems.map((link) => link.article_id).filter(Boolean)
+    };
   }));
 };
 
@@ -322,10 +352,17 @@ export const getArchiveVolume = asyncHandler(async (req, res) => {
 });
 
 export const createArchiveVolume = asyncHandler(async (req, res) => {
+  const currentIssue = req.body.current_issue_id
+    ? await CurrentIssue.findById(getValidatedObjectId(req.body.current_issue_id, "current issue"))
+    : null;
+  if (req.body.current_issue_id && !currentIssue) {
+    return res.status(404).json({ message: "Current issue not found" });
+  }
   const volume = await ArchiveVolume.create({
     journal_id: req.body.journal_id,
-    year: req.body.year,
-    volume_title: req.body.volume_title
+    current_issue_id: currentIssue?._id,
+    year: req.body.year === undefined || req.body.year === "" ? undefined : getArchiveYear(req.body.year),
+    volume_title: req.body.volume_title || currentIssue?.volume_title
   });
 
   const article_ids = parseIds(req.body.article_ids);
@@ -344,7 +381,7 @@ export const updateArchiveVolume = asyncHandler(async (req, res) => {
   if (!volume) return res.status(404).json({ message: "Archive volume not found" });
 
   if (req.body.journal_id) volume.journal_id = req.body.journal_id;
-  if (req.body.year) volume.year = req.body.year;
+  if (Object.prototype.hasOwnProperty.call(req.body, "year")) volume.year = getArchiveYear(req.body.year);
   if (req.body.volume_title) volume.volume_title = req.body.volume_title;
   await volume.save();
 

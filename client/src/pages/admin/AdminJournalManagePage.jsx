@@ -28,6 +28,7 @@ export const AdminJournalManagePage = () => {
   const [journal, setJournal] = useState(null);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [archiveYears, setArchiveYears] = useState({});
   const [editJournalForm, setEditJournalForm] = useState({
     title: "",
     about: "",
@@ -76,7 +77,7 @@ export const AdminJournalManagePage = () => {
       file: null
     },
     boardMember: { name: "", description: "", image: null },
-    currentIssue: { volume_title: "", archive_volume_ids: [] },
+    currentIssue: { volume_title: "", article_ids: [] },
     archiveVolume: { year: "", volume_title: "", article_ids: [] },
     video: { title: "", youtube_url: "", thumbnail: null },
     ppt: { title: "", file: null, thumbnail: null },
@@ -84,6 +85,7 @@ export const AdminJournalManagePage = () => {
   });
   const [allItems, setAllItems] = useState({
     articles: [],
+    articlesInPress: [],
     boardMembers: [],
     currentIssues: [],
     archiveVolumes: [],
@@ -99,13 +101,14 @@ export const AdminJournalManagePage = () => {
   const load = async () => {
     setError("");
     try {
-      const [journalRes, articlesRes, boardRes, issuesRes, archiveRes, videosRes, pptsRes, indexingRes] =
+      const [journalRes, articlesRes, inPressRes, boardRes, issuesRes, archiveRes, videosRes, pptsRes, indexingRes] =
         await Promise.all([
           http.get("/journals"),
           http.get("/content/articles", { params: { journal_id: journalId } }),
+          http.get("/content/articles-in-press", { params: { journal_id: journalId } }),
           http.get("/content/board-members", { params: { journal_id: journalId } }),
           http.get("/content/current-issues", { params: { journal_id: journalId } }),
-          http.get("/content/archive-volumes", { params: { journal_id: journalId } }),
+          http.get("/content/archive-volumes", { params: { journal_id: journalId, include_unassigned: "true" } }),
           http.get("/content/videos", { params: { journal_id: journalId } }),
           http.get("/content/ppts", { params: { journal_id: journalId } }),
           http.get("/content/indexing-logos", { params: { journal_id: journalId } })
@@ -123,6 +126,7 @@ export const AdminJournalManagePage = () => {
       });
       setAllItems({
         articles: articlesRes.data.articles || [],
+        articlesInPress: inPressRes.data.articles || [],
         boardMembers: boardRes.data.members || [],
         currentIssues: issuesRes.data.issues || [],
         archiveVolumes: archiveRes.data.volumes || [],
@@ -130,6 +134,7 @@ export const AdminJournalManagePage = () => {
         ppts: pptsRes.data.ppts || [],
         indexingLogos: indexingRes.data.indexingLogos || []
       });
+      setArchiveYears(Object.fromEntries((archiveRes.data.volumes || []).map((volume) => [volume._id, volume.year || ""])));
 
       try {
         const infoRes = await http.get(`/content/info-table/${journalId}`);
@@ -389,10 +394,11 @@ export const AdminJournalManagePage = () => {
       await http.post("/content/current-issues", {
         journal_id: journalId,
         volume_title: forms.currentIssue.volume_title,
-        archive_volume_ids: forms.currentIssue.archive_volume_ids
+        article_ids: forms.currentIssue.article_ids,
+        year: new Date().getFullYear()
       });
       await load();
-      setForm("currentIssue", { volume_title: "", archive_volume_ids: [] });
+      setForm("currentIssue", { volume_title: "", article_ids: [] });
       setInfo("Current issue created successfully.");
       window.alert("Current issue created successfully.");
     } catch (err) {
@@ -439,18 +445,18 @@ export const AdminJournalManagePage = () => {
   };
 
   const updateArchiveVolume = async (item) => {
-    const volume_title = window.prompt("Update volume title", item.volume_title);
-    if (!volume_title) return;
+    const year = archiveYears[item._id];
+    if (!year) return;
     try {
       setError("");
       setInfo("");
-      await http.put(`/content/archive-volumes/${item._id}`, { volume_title });
+      await http.put(`/content/archive-volumes/${item._id}`, { year: Number(year) });
       await load();
-      setInfo("Archive volume updated successfully.");
-      window.alert("Archive volume updated successfully.");
+      setInfo("Archive year updated successfully.");
+      window.alert("Archive year updated successfully.");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update archive volume");
-      window.alert(err.response?.data?.message || "Failed to update archive volume");
+      setError(err.response?.data?.message || "Failed to update archive year");
+      window.alert(err.response?.data?.message || "Failed to update archive year");
     }
   };
 
@@ -908,27 +914,38 @@ export const AdminJournalManagePage = () => {
       {activeTab === "current-issue" ? (
         <section className="form-card admin-panel">
           <h3>Current Issue</h3>
-          {forms.currentIssue.archive_volume_ids.length ? (
+          {!allItems.currentIssues.length ? (
             <div className="selected-volumes-preview">
-              {allItems.archiveVolumes
-                .filter((volume) => forms.currentIssue.archive_volume_ids.includes(volume._id))
-                .map((volume) => (
-                  <div key={volume._id} className="selected-volume-card">
-                    <div className="selected-volume-header">
-                      <strong>{volume.year} - {volume.volume_title}</strong>
-                      <span>{volume.article_items?.length || 0} article(s)</span>
-                    </div>
-                    {volume.article_items?.length ? (
-                      <ul className="selected-volume-articles">
-                        {volume.article_items.map((article) => (
-                          <li key={article._id}>{article.title}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="muted-line">No articles in this volume.</p>
-                    )}
-                  </div>
-                ))}
+              <div className="selected-volume-card">
+                <div className="selected-volume-header">
+                  <strong>Articles In Press</strong>
+                  <span>{allItems.articlesInPress.length} article(s) available</span>
+                </div>
+                {allItems.articlesInPress.length ? (
+                  <ul className="selected-volume-articles">
+                    {allItems.articlesInPress.map((article) => (
+                      <li key={article._id}>{article.title} ({article.authors})</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="muted-line">No articles in press available.</p>
+                )}
+              </div>
+            </div>
+          ) : null}
+          {forms.currentIssue.article_ids.length ? (
+            <div className="selected-volumes-preview">
+              <div className="selected-volume-card">
+                <div className="selected-volume-header">
+                  <strong>{forms.currentIssue.volume_title || "Selected articles"}</strong>
+                  <span>{forms.currentIssue.article_ids.length} article(s)</span>
+                </div>
+                <ul className="selected-volume-articles">
+                  {allItems.articlesInPress
+                    .filter((article) => forms.currentIssue.article_ids.includes(article._id))
+                    .map((article) => <li key={article._id}>{article.title}</li>)}
+                </ul>
+              </div>
             </div>
           ) : null}
           <form className="form-grid" onSubmit={createCurrentIssue}>
@@ -937,24 +954,24 @@ export const AdminJournalManagePage = () => {
               <input placeholder="Volume title" required value={forms.currentIssue.volume_title} onChange={(e) => setForm("currentIssue", { volume_title: e.target.value })} />
             </label>
             <label>
-              Select Archive Volumes (Hold Ctrl/Cmd to select multiple)
+              Select Articles In Press (Hold Ctrl/Cmd to select multiple)
               <select
                 multiple
-                value={forms.currentIssue.archive_volume_ids}
+                value={forms.currentIssue.article_ids}
                 onChange={(e) => {
                   const selected = Array.from(e.target.selectedOptions, opt => opt.value);
-                  setForm("currentIssue", { archive_volume_ids: selected });
+                  setForm("currentIssue", { article_ids: selected });
                 }}
                 style={{ minHeight: "120px" }}
               >
-                {allItems.archiveVolumes.map((volume) => (
-                  <option key={volume._id} value={volume._id}>
-                    {volume.year} - {volume.volume_title}
+                {allItems.articlesInPress.map((article) => (
+                  <option key={article._id} value={article._id}>
+                    {article.title} ({article.authors})
                   </option>
                 ))}
               </select>
               <span className="muted-line" style={{ fontSize: "0.85rem", marginTop: "0.3rem", display: "block" }}>
-                {forms.currentIssue.archive_volume_ids.length} volume(s) selected
+                {forms.currentIssue.article_ids.length} article(s) selected
               </span>
             </label>
             <button className="primary-btn" type="submit">Create Current Issue</button>
@@ -974,47 +991,32 @@ export const AdminJournalManagePage = () => {
       {activeTab === "archive" ? (
         <section className="form-card admin-panel">
           <h3>Archive</h3>
-          <form className="form-grid" onSubmit={createArchiveVolume}>
-            <label>
-              Year
-              <input placeholder="Year" type="number" required value={forms.archiveVolume.year} onChange={(e) => setForm("archiveVolume", { year: e.target.value })} />
-            </label>
-            <label>
-              Volume Title
-              <input placeholder="Volume title" required value={forms.archiveVolume.volume_title} onChange={(e) => setForm("archiveVolume", { volume_title: e.target.value })} />
-            </label>
-            <label>
-              Select Articles (Hold Ctrl/Cmd to select multiple)
-              <select
-                multiple
-                value={forms.archiveVolume.article_ids}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, opt => opt.value);
-                  setForm("archiveVolume", { article_ids: selected });
-                }}
-                style={{ minHeight: "120px" }}
-              >
-                {allItems.articles.map((article) => (
-                  <option key={article._id} value={article._id}>
-                    {article.title} ({article.authors})
-                  </option>
-                ))}
-              </select>
-              <span className="muted-line" style={{ fontSize: "0.85rem", marginTop: "0.3rem", display: "block" }}>
-                {forms.archiveVolume.article_ids.length} article(s) selected
-              </span>
-            </label>
-            <button className="primary-btn" type="submit">Create Archive Volume</button>
-          </form>
-          {allItems.archiveVolumes.map((item) => (
-            <div className="item-row" key={item._id}>
-              <span>{item.year} - {item.volume_title}</span>
-              <div className="actions">
-                <button type="button" onClick={() => updateArchiveVolume(item)}>Edit</button>
-                <button className="danger-btn" type="button" onClick={() => remove("archive-volumes", item._id)}>Delete</button>
+          {allItems.archiveVolumes.length ? allItems.archiveVolumes.map((volume) => {
+            const issue = allItems.currentIssues.find((item) => String(item._id) === String(volume.current_issue_id));
+            return (
+              <div className="item-row" key={volume._id}>
+                <div>
+                  <strong>{issue?.volume_title || volume.volume_title}</strong>
+                  <p className="muted-line" style={{ margin: "0.3rem 0 0" }}>
+                    {volume.article_items?.length || 0} article(s)
+                  </p>
+                </div>
+                <div className="actions">
+                  <input
+                    type="number"
+                    min="1950"
+                    max="2100"
+                    required
+                    placeholder="Archive year"
+                    value={archiveYears[volume._id] || ""}
+                    onChange={(e) => setArchiveYears((prev) => ({ ...prev, [volume._id]: e.target.value }))}
+                  />
+                  <button type="button" onClick={() => updateArchiveVolume(volume)}>Update Year</button>
+                  <button className="danger-btn" type="button" onClick={() => remove("archive-volumes", volume._id)}>Delete</button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          }) : <p className="muted-line">No current-issue volumes available.</p>}
         </section>
       ) : null}
 

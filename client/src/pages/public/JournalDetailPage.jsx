@@ -252,6 +252,11 @@ export const JournalDetailPage = () => {
             <div className={`tab-content ${activeTab === "current" ? "active" : ""}`} id="current">
               <div className="content-header">
                 <h1>Current Issue</h1>
+                {content.issues.length ? (
+                  <h2 className="issue-volume-title">
+                    {content.issues[0].volume_title || content.issues[0].volume_items?.[0]?.volume_title}
+                  </h2>
+                ) : null}
               </div>
               <div className="content-body">
                 {content.issues.length ? (
@@ -263,8 +268,10 @@ export const JournalDetailPage = () => {
                             {safeList(issue.volume_items).map((volume) => (
                               <div key={volume._id} className="issue-volume-block">
                                 <div className="issue-volume-heading">
-                                  <span>{volume.year}</span>
-                                  <h3>{volume.volume_title}</h3>
+                                    <span>{volume.year || "Archive year pending"}</span>
+                                    <Link to={`/journals/${slug}/archive/${volume._id}`}>
+                                      <h3>{volume.volume_title}</h3>
+                                    </Link>
                                 </div>
                                 {volume.article_items?.length ? (
                                   <div className="issue-articles">

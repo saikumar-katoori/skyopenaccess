@@ -1472,7 +1472,7 @@ textarea:focus {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 2% 10%;
+  padding: 2% 2% 2% 8%;
 }
 
 .journal-layout {
@@ -1969,9 +1969,9 @@ textarea:focus {
 }
 
 .articles-list {
-  display: grid;
+  /* display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 1.5rem;
+  gap: 1.5rem; */
 }
 
 .article-item {
