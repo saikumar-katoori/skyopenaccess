@@ -1,8 +1,7 @@
-import { cloudinary } from "../config/cloudinary.js";
 import { Journal } from "../models/Journal.js";
 import { Submission } from "../models/Submission.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { sendSubmissionStatusEmail } from "../utils/mailer.js";
+import { sendSubmissionStatusEmail, sendNewSubmissionNotificationEmail } from "../utils/mailer.js";
 import { uploadBufferToCloudinary } from "../utils/uploadToCloudinary.js";
 
 const parseJournalIds = (journalIdsRaw) => {
@@ -28,7 +27,8 @@ export const createSubmission = asyncHandler(async (req, res) => {
     abstract
   } = req.body;
 
-  if (!req.file?.buffer) {
+  const manuscriptFile = req.files?.find(f => f.fieldname === "manuscript");
+  if (!manuscriptFile?.buffer) {
     return res.status(400).json({ message: "Manuscript file is required" });
   }
 
@@ -42,8 +42,9 @@ export const createSubmission = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "One or more selected journals are invalid" });
   }
 
-  const upload = await uploadBufferToCloudinary(req.file.buffer, {
-    folder: "journals/submissions",
+  // Upload manuscript to Cloudinary
+  const upload = await uploadBufferToCloudinary(manuscriptFile.buffer, {
+    folder: "submissions/manuscripts",
     resource_type: "raw"
   });
 
@@ -57,8 +58,11 @@ export const createSubmission = asyncHandler(async (req, res) => {
     abstract,
     manuscript_url: upload.secure_url,
     manuscript_public_id: upload.public_id,
-    manuscript_format: req.file.mimetype
+    manuscript_format: manuscriptFile.mimetype
   });
+
+  const selectedJournals = await Journal.find({ _id: { $in: journal_ids } }, "title");
+  const journalNames = selectedJournals.map((j) => j.title).join(", ");
 
   try {
     await sendSubmissionStatusEmail({
@@ -70,6 +74,13 @@ export const createSubmission = asyncHandler(async (req, res) => {
   } catch (emailErr) {
     // eslint-disable-next-line no-console
     console.error("Failed to send submission received email", emailErr.message);
+  }
+
+  try {
+    await sendNewSubmissionNotificationEmail(submission, journalNames);
+  } catch (emailErr) {
+    // eslint-disable-next-line no-console
+    console.error("Failed to send new submission admin notification email", emailErr.message);
   }
 
   res.status(201).json({
@@ -118,10 +129,32 @@ export const deleteSubmission = asyncHandler(async (req, res) => {
   const submission = await Submission.findById(req.params.id);
   if (!submission) return res.status(404).json({ message: "Submission not found" });
 
-  await cloudinary.uploader.destroy(submission.manuscript_public_id, {
-    resource_type: "raw"
-  });
+  // Delete from Cloudinary if public_id exists
+  if (submission.manuscript_public_id) {
+    try {
+      const { cloudinary } = await import("../config/cloudinary.js");
+      await Promise.all([
+        cloudinary.uploader.destroy(submission.manuscript_public_id, { resource_type: "raw" }).catch(() => {}),
+        cloudinary.uploader.destroy(submission.manuscript_public_id, { resource_type: "image" }).catch(() => {})
+      ]);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to delete file from Cloudinary", err.message);
+    }
+  }
 
   await submission.deleteOne();
   res.status(200).json({ message: "Submission deleted" });
+});
+
+export const downloadSubmissionManuscript = asyncHandler(async (req, res) => {
+  const submission = await Submission.findById(req.params.id);
+  if (!submission) return res.status(404).json({ message: "Submission not found" });
+
+  if (!submission.manuscript_url) {
+    return res.status(404).json({ message: "Manuscript file not found" });
+  }
+
+  // Return the Cloudinary URL so client can use Google Drive viewer
+  res.json({ url: submission.manuscript_url });
 });

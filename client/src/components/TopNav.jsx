@@ -17,7 +17,6 @@ export const TopNav = () => {
       <nav>
         <NavLink to="/">Home</NavLink>
         <NavLink to="/submit">Submit Manuscript</NavLink>
-        {!isAdmin ? <NavLink to="/admin/create-temp">Admin Create Temp</NavLink> : null}
         {!isAdmin ? <NavLink to="/admin/login">Admin</NavLink> : null}
         {isAdmin ? (
           <>

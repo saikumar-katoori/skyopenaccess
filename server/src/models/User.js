@@ -10,8 +10,8 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationCodeHash: { type: String, select: false },
     emailVerificationCodeExpiresAt: { type: Date, select: false },
-    twoFactorCodeHash: { type: String, select: false },
-    twoFactorCodeExpiresAt: { type: Date, select: false }
+    twoFactorSecret: { type: String, select: false },
+    twoFactorEnabled: { type: Boolean, default: false, select: false }
   },
   { timestamps: true }
 );

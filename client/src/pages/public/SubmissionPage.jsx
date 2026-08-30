@@ -11,203 +11,40 @@ const articleTypes = [
 ];
 
 const countries = [
-  "Afghanistan",
-  "Albania",
-  "Algeria",
-  "Andorra",
-  "Angola",
-  "Antigua and Barbuda",
-  "Argentina",
-  "Armenia",
-  "Australia",
-  "Austria",
-  "Azerbaijan",
-  "Bahamas",
-  "Bahrain",
-  "Bangladesh",
-  "Barbados",
-  "Belarus",
-  "Belgium",
-  "Belize",
-  "Benin",
-  "Bhutan",
-  "Bolivia",
-  "Bosnia and Herzegovina",
-  "Botswana",
-  "Brazil",
-  "Brunei",
-  "Bulgaria",
-  "Burkina Faso",
-  "Burundi",
-  "Cabo Verde",
-  "Cambodia",
-  "Cameroon",
-  "Canada",
-  "Central African Republic",
-  "Chad",
-  "Chile",
-  "China",
-  "Colombia",
-  "Comoros",
-  "Congo",
-  "Costa Rica",
-  "Croatia",
-  "Cuba",
-  "Cyprus",
-  "Czechia",
-  "Democratic Republic of the Congo",
-  "Denmark",
-  "Djibouti",
-  "Dominica",
-  "Dominican Republic",
-  "Ecuador",
-  "Egypt",
-  "El Salvador",
-  "Equatorial Guinea",
-  "Eritrea",
-  "Estonia",
-  "Eswatini",
-  "Ethiopia",
-  "Fiji",
-  "Finland",
-  "France",
-  "Gabon",
-  "Gambia",
-  "Georgia",
-  "Germany",
-  "Ghana",
-  "Greece",
-  "Grenada",
-  "Guatemala",
-  "Guinea",
-  "Guinea-Bissau",
-  "Guyana",
-  "Haiti",
-  "Honduras",
-  "Hungary",
-  "Iceland",
-  "India",
-  "Indonesia",
-  "Iran",
-  "Iraq",
-  "Ireland",
-  "Israel",
-  "Italy",
-  "Ivory Coast",
-  "Jamaica",
-  "Japan",
-  "Jordan",
-  "Kazakhstan",
-  "Kenya",
-  "Kiribati",
-  "Kuwait",
-  "Kyrgyzstan",
-  "Laos",
-  "Latvia",
-  "Lebanon",
-  "Lesotho",
-  "Liberia",
-  "Libya",
-  "Liechtenstein",
-  "Lithuania",
-  "Luxembourg",
-  "Madagascar",
-  "Malawi",
-  "Malaysia",
-  "Maldives",
-  "Mali",
-  "Malta",
-  "Marshall Islands",
-  "Mauritania",
-  "Mauritius",
-  "Mexico",
-  "Micronesia",
-  "Moldova",
-  "Monaco",
-  "Mongolia",
-  "Montenegro",
-  "Morocco",
-  "Mozambique",
-  "Myanmar",
-  "Namibia",
-  "Nauru",
-  "Nepal",
-  "Netherlands",
-  "New Zealand",
-  "Nicaragua",
-  "Niger",
-  "Nigeria",
-  "North Korea",
-  "North Macedonia",
-  "Norway",
-  "Oman",
-  "Pakistan",
-  "Palau",
-  "Palestine",
-  "Panama",
-  "Papua New Guinea",
-  "Paraguay",
-  "Peru",
-  "Philippines",
-  "Poland",
-  "Portugal",
-  "Qatar",
-  "Romania",
-  "Russia",
-  "Rwanda",
-  "Saint Kitts and Nevis",
-  "Saint Lucia",
-  "Saint Vincent and the Grenadines",
-  "Samoa",
-  "San Marino",
-  "Sao Tome and Principe",
-  "Saudi Arabia",
-  "Senegal",
-  "Serbia",
-  "Seychelles",
-  "Sierra Leone",
-  "Singapore",
-  "Slovakia",
-  "Slovenia",
-  "Solomon Islands",
-  "Somalia",
-  "South Africa",
-  "South Korea",
-  "South Sudan",
-  "Spain",
-  "Sri Lanka",
-  "Sudan",
-  "Suriname",
-  "Sweden",
-  "Switzerland",
-  "Syria",
-  "Tajikistan",
-  "Tanzania",
-  "Thailand",
-  "Timor-Leste",
-  "Togo",
-  "Tonga",
-  "Trinidad and Tobago",
-  "Tunisia",
-  "Turkey",
-  "Turkmenistan",
-  "Tuvalu",
-  "Uganda",
-  "Ukraine",
-  "United Arab Emirates",
-  "United Kingdom",
-  "United States",
-  "Uruguay",
-  "Uzbekistan",
-  "Vanuatu",
-  "Vatican City",
-  "Venezuela",
-  "Vietnam",
-  "Yemen",
-  "Zambia",
-  "Zimbabwe"
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
+  "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas",
+  "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize",
+  "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil",
+  "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
+  "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China",
+  "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba",
+  "Cyprus", "Czechia", "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica",
+  "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea",
+  "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
+  "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece",
+  "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti",
+  "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran",
+  "Iraq", "Ireland", "Israel", "Italy", "Ivory Coast", "Jamaica",
+  "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait",
+  "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia",
+  "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi",
+  "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania",
+  "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia",
+  "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru",
+  "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
+  "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau",
+  "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines",
+  "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda",
+  "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
+  "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore",
+  "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea",
+  "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden",
+  "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste",
+  "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+  "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States",
+  "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam",
+  "Yemen", "Zambia", "Zimbabwe"
 ];
-
 export const SubmissionPage = () => {
   const [journals, setJournals] = useState([]);
   const [form, setForm] = useState({
@@ -221,12 +58,13 @@ export const SubmissionPage = () => {
     manuscript: null
   });
   const [status, setStatus] = useState({ type: "", message: "" });
+  const [fileName, setFileName] = useState("");
 
   useEffect(() => {
     http
       .get("/journals")
       .then((res) => setJournals(res.data.journals || []))
-      .catch(console.error);
+      .catch(() => setJournals([]));
   }, []);
 
   const abstractWords = useMemo(() => {
@@ -245,6 +83,7 @@ export const SubmissionPage = () => {
 
   const onFileChange = (e) => {
     const file = e.target.files?.[0] || null;
+    setFileName(file?.name || "");
     setForm((prev) => ({ ...prev, manuscript: file }));
   };
 
@@ -252,29 +91,29 @@ export const SubmissionPage = () => {
     e.preventDefault();
     setStatus({ type: "", message: "" });
 
-    if (abstractWords < 150) {
-      setStatus({ type: "error", message: "Abstract should be at least 150 words." });
+    if (abstractWords < 60) {
+      setStatus({ type: "error", message: "Abstract should be at least 60 words." });
       return;
     }
 
     if (!form.manuscript) {
-      setStatus({ type: "error", message: "Please upload manuscript file." });
+      setStatus({ type: "error", message: "Please upload your manuscript file." });
       return;
     }
 
-    const data = new FormData();
-    data.append("full_name", form.full_name);
-    data.append("email", form.email);
-    data.append("article_type", form.article_type);
-    data.append("manuscript_title", form.manuscript_title);
-    data.append("country", form.country);
-    data.append("abstract", form.abstract);
-    data.append("journal_ids", JSON.stringify(form.journal_ids));
-    data.append("manuscript", form.manuscript);
-
     try {
+      const data = new FormData();
+      data.append("full_name", form.full_name);
+      data.append("email", form.email);
+      data.append("article_type", form.article_type);
+      data.append("manuscript_title", form.manuscript_title);
+      data.append("country", form.country);
+      data.append("abstract", form.abstract);
+      data.append("journal_ids", JSON.stringify(form.journal_ids));
+      data.append("manuscript", form.manuscript);
+
       const res = await http.post("/submissions", data);
-      setStatus({ type: "success", message: res.data.message || "Submission successful." });
+      setStatus({ type: "success", message: res.data?.message || "Submission received." });
       setForm({
         full_name: "",
         email: "",
@@ -285,104 +124,180 @@ export const SubmissionPage = () => {
         abstract: "",
         manuscript: null
       });
-    } catch (error) {
-      setStatus({
-        type: "error",
-        message: error.response?.data?.message || "Submission failed"
-      });
+      setFileName("");
+    } catch (err) {
+      setStatus({ type: "error", message: err.response?.data?.message || "Submission failed." });
     }
   };
 
   return (
-    <main className="container">
-      <section className="form-card">
-        <h1>Online Manuscript Submission</h1>
-        <p>Submit your article with all required information and attach .doc/.docx/.pdf file.</p>
+    <main>
+      <section className="submission-section">
+        {/* LEFT SIDE */}
+        <div className="submission-left">
+          <p className="submission-tag">ONLINE SUBMISSION PORTAL</p>
+          
+          <h1>
+            Submit Your<br />
+            Manuscript With<br />
+            Confidence
+          </h1>
 
-        <form onSubmit={submit} className="form-grid">
-          <label>
-            Full Name
-            <input name="full_name" value={form.full_name} onChange={update} required />
-          </label>
+          <div className="submission-line"></div>
 
-          <label>
-            Enter Mail
-            <input name="email" type="email" value={form.email} onChange={update} required />
-          </label>
+          <p className="submission-desc">
+            Fast, secure, and transparent submission process for authors and researchers worldwide.
+          </p>
 
-          <label>
-            Article Type
-            <select name="article_type" value={form.article_type} onChange={update} required>
-              {articleTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* FEATURES */}
+          <div className="submission-features">
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fa-solid fa-users"></i>
+              </div>
+              <h3>Peer-Reviewed Publishing</h3>
+              <p>Quality assurance through rigorous peer review process.</p>
+            </div>
 
-          <label>
-            Manuscript Title
-            <input
-              name="manuscript_title"
-              value={form.manuscript_title}
-              onChange={update}
-              required
-            />
-          </label>
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fa-solid fa-file-shield"></i>
+              </div>
+              <h3>Secure File Upload</h3>
+              <p>Your manuscripts and documents remain protected.</p>
+            </div>
 
-          <label>
-            Journal(s)
-            <select multiple value={form.journal_ids} onChange={onJournalSelect} required>
-              {journals.map((journal) => (
-                <option key={journal._id} value={journal._id}>
-                  {journal.title}
-                </option>
-              ))}
-            </select>
-          </label>
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fa-solid fa-bolt"></i>
+              </div>
+              <h3>Fast Editorial Response</h3>
+              <p>Get quick updates from our editorial team.</p>
+            </div>
+          </div>
 
-          <label>
-            Country
-            <select name="country" value={form.country} onChange={update} required>
-              <option value="">Select Country</option>
-              {countries.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* BUTTONS */}
+          <div className="submission-buttons">
+            <a href="/peer-review" className="start-btn">
+              Peer-Review Process
+            </a>
+            <a href="/author-guidelines" className="guide-btn">
+              Author Guidelines
+            </a>
+          </div>
+        </div>
 
-          <label className="full-width">
-            Abstract
-            <textarea
-              name="abstract"
-              rows={8}
-              value={form.abstract}
-              onChange={update}
-              placeholder="Write 150-300 words covering aim, methods, results and conclusions"
-              required
-            />
-            <small>{abstractWords} words</small>
-          </label>
+        {/* RIGHT SIDE - FORM */}
+        <div className="submission-right">
+          <div className="submission-form">
+            <form onSubmit={submit}>
+              <div className="submission-grid">
+                <div className="input-group">
+                  <label>Name</label>
+                  <input
+                    name="full_name"
+                    value={form.full_name}
+                    onChange={update}
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
 
-          <label className="full-width">
-            Main File (.doc/.docx/.pdf)
-            <input
-              type="file"
-              accept=".doc,.docx,.pdf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              onChange={onFileChange}
-              required
-            />
-          </label>
+                <div className="input-group">
+                  <label>Email Address</label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={update}
+                    placeholder="Enter your email address"
+                    required
+                  />
+                </div>
 
-          <button type="submit" className="primary-btn full-width">
-            Submit
-          </button>
-        </form>
+                <div className="input-group">
+                  <label>Select Article Type</label>
+                  <select name="article_type" value={form.article_type} onChange={update}>
+                    {articleTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-        {status.message ? <p className={status.type}>{status.message}</p> : null}
+                <div className="input-group">
+                  <label>Manuscript Title</label>
+                  <input
+                    name="manuscript_title"
+                    value={form.manuscript_title}
+                    onChange={update}
+                    placeholder="Enter manuscript title"
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Journal</label>
+                  <select value={form.journal_ids[0] || ""} onChange={(e) => setForm((prev) => ({ ...prev, journal_ids: [e.target.value] }))}>
+                    <option value="">Select Your Journal</option>
+                    {journals.map((journal) => (
+                      <option key={journal._id} value={journal._id}>
+                        {journal.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label>Select Your Country</label>
+                  <select name="country" value={form.country} onChange={update} required>
+                    <option value="">Select Your Country</option>
+                    {countries.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>Abstract</label>
+                <textarea
+                  name="abstract"
+                  className="abstract-box"
+                  value={form.abstract}
+                  onChange={update}
+                  placeholder="Write your abstract here..."
+                  required
+                />
+              </div>
+
+              <div className="upload-section">
+                <p className="upload-text">
+                  (Please Upload Only .Doc / .Pdf Files Only)
+                </p>
+                <label className="upload-btn" htmlFor="manuscript">
+                  <i className="fa-solid fa-upload"></i>
+                  Upload Manuscript
+                </label>
+                <input id="manuscript" type="file" onChange={onFileChange} hidden accept=".doc,.docx,.pdf" />
+                <p className="file-name">{fileName || "No file chosen"}</p>
+              </div>
+
+              <button type="submit" className="submit-btn">
+                Submit Manuscript
+              </button>
+
+              {status.message && (
+                <p className={`status-message ${status.type}`}>
+                  {status.message}
+                </p>
+              )}
+            </form>
+          </div>
+        </div>
       </section>
     </main>
   );

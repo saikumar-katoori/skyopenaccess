@@ -16,11 +16,8 @@ const requiredInProdOnly = [
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
   "CLIENT_ORIGIN",
-  "SMTP_HOST",
-  "SMTP_PORT",
-  "SMTP_USER",
-  "SMTP_PASS",
-  "SMTP_FROM"
+  "MAILGUN_API_KEY",
+  "MAILGUN_DOMAIN"
 ];
 
 const required = isProduction
@@ -55,12 +52,9 @@ export const env = {
     apiSecret: process.env.CLOUDINARY_API_SECRET || ""
   },
   adminSetupKey: process.env.ADMIN_SETUP_KEY || "",
-  smtp: {
-    host: process.env.SMTP_HOST || "",
-    port: Number(process.env.SMTP_PORT || 587),
-    user: process.env.SMTP_USER || "",
-    pass: process.env.SMTP_PASS || "",
-    from: process.env.SMTP_FROM || "",
-    secure: process.env.SMTP_SECURE === "true"
+  mailgun: {
+    apiKey: process.env.MAILGUN_API_KEY || "",
+    domain: process.env.MAILGUN_DOMAIN || "",
+    from: process.env.MAILGUN_FROM || "Sky Open Access <no-reply@skyopenaccess.com>"
   }
 };

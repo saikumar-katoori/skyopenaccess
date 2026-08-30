@@ -8,3 +8,11 @@ client/node_modules
 
 server/.env
 client/.env
+
+# Logs
+*.log
+logs
+server/logs
+client/dist
+*DockerFile.dev
+docker-compose.dev.yml

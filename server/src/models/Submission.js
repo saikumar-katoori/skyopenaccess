@@ -15,12 +15,13 @@ const submissionSchema = new mongoose.Schema(
     abstract: {
       type: String,
       required: true,
-      minlength: 150,
+      minlength: 60,
       maxlength: 3000
     },
-    manuscript_url: { type: String, required: true },
-    manuscript_public_id: { type: String, required: true },
-    manuscript_format: { type: String, required: true },
+    manuscript_url: { type: String },
+    manuscript_public_id: { type: String },
+    manuscript_format: { type: String },
+    manuscript_data: { type: Buffer },
     status: {
       type: String,
       enum: ["received", "under_review", "accepted", "published", "rejected"],

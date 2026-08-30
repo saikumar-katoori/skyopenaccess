@@ -20,8 +20,11 @@ export const manuscriptUpload = multer({
   storage,
   limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (!manuscriptTypes.includes(file.mimetype)) {
-      return cb(new Error("Only .doc, .docx and .pdf files are allowed"));
+    // Only validate manuscript files, allow other fields
+    if (file.fieldname === "manuscript") {
+      if (!manuscriptTypes.includes(file.mimetype)) {
+        return cb(new Error("Only .doc, .docx and .pdf files are allowed"));
+      }
     }
     cb(null, true);
   }
@@ -44,6 +47,23 @@ export const documentUpload = multer({
   fileFilter: (req, file, cb) => {
     if (!documentTypes.includes(file.mimetype)) {
       return cb(new Error("Only doc/docx/pdf/ppt/pptx files are allowed"));
+    }
+    cb(null, true);
+  }
+});
+
+export const pptUpload = multer({
+  storage,
+  limits: { fileSize: 40 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === "file") {
+      if (!documentTypes.includes(file.mimetype)) {
+        return cb(new Error("Only doc/docx/pdf/ppt/pptx files are allowed for PPT"));
+      }
+    } else if (file.fieldname === "thumbnail") {
+      if (!imageTypes.includes(file.mimetype)) {
+        return cb(new Error("Only image files are allowed for thumbnail"));
+      }
     }
     cb(null, true);
   }

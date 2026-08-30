@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production
+
+COPY . .
+
+# Create production logs folder inside the container
+RUN mkdir -p logs
+
+EXPOSE 5000
+
+ENV NODE_ENV=production
+
+CMD ["npm", "start"]

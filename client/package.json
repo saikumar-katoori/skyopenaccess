@@ -9,13 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tinymce/tinymce-react": "^6.3.0",
     "axios": "^1.7.7",
+    "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "react-easy-crop": "^5.0.6",
+    "react-router-dom": "^6.28.0",
+    "tinymce": "^8.5.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.2",
-    "vite": "^5.4.8"
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^7.0.0"
   }
 }

@@ -15,11 +15,19 @@ export const submissionLimiter = rateLimit({
   legacyHeaders: false
 });
 
-export const authLimiter = rateLimit({
+export const authLoginLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: 5,
+  max: 10,
   skipSuccessfulRequests: true,
   message: "Too many incorrect login attempts. Try again after 10 minutes.",
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+export const authVerificationLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 30,
+  message: "Too many verification requests. Please try again in a few minutes.",
   standardHeaders: true,
   legacyHeaders: false
 });
