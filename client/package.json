@@ -19,7 +19,7 @@
     "tinymce": "^8.5.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.2",
-    "vite": "^8.2.2"
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^7.0.0"
   }
 }
