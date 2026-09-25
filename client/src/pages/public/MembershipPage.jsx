@@ -38,7 +38,7 @@ export const MembershipPage = () => (
 
           <div className="benefit-card fade-up">
             <h3>Access to All Journals</h3>
-            <p>Unrestricted access to all journals published by MK ScienceSet.</p>
+            <p>Unrestricted access to all journals published by SKY Open Access Publishers.</p>
           </div>
 
           <div className="benefit-card fade-up">
@@ -72,31 +72,11 @@ export const MembershipPage = () => (
           </div>
         </div>
 
-        <div className="pricing-table fade-up">
-          <table>
-            <thead>
-              <tr>
-                <th>Membership</th>
-                <th>Annual</th>
-                <th>Two Years</th>
-                <th>Three Years</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Individual</td>
-                <td>$15000</td>
-                <td>$20000</td>
-                <td>$25000</td>
-              </tr>
-              <tr>
-                <td>University / Institute / Organization</td>
-                <td>$15000</td>
-                <td>$25000</td>
-                <td>$30000</td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="pricing-table fade-up membership-header">
+          <h2>Why Membership is Important?</h2>
+          <p>
+            Membership is crucial for authors who wish to publish their research without the burden of high publication fees. It ensures that your work reaches a wider audience, enhances your academic profile, and provides you with the necessary support throughout the publishing process.
+          </p>
         </div>
 
         <div className="membership-cta fade-up">

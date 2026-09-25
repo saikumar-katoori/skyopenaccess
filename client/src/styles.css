@@ -843,6 +843,28 @@ textarea:focus {
   width: 220px;
 }
 
+.admin-edit-row {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(20, 12, 8, 0.6);
+  border: 0;
+}
+
+.admin-edit-row > form {
+  width: min(720px, 92vw) !important;
+  max-height: min(760px, 92vh);
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+}
+
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -1980,6 +2002,7 @@ textarea:focus {
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.2s ease;
+  margin-bottom: 15px;
 }
 
 .article-item:hover {
@@ -2037,6 +2060,7 @@ textarea:focus {
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.8rem;
+  margin-right: 10px;
   padding: 0.6rem 1rem;
   background: var(--accent);
   color: #ffffff;

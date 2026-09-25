@@ -93,9 +93,20 @@ export const AdminJournalManagePage = () => {
     ppts: [],
     indexingLogos: []
   });
+  const [editing, setEditing] = useState(null);
+  const [editArticleForm, setEditArticleForm] = useState(null);
+  const [editBoardMemberForm, setEditBoardMemberForm] = useState(null);
+  const [editCurrentIssueForm, setEditCurrentIssueForm] = useState(null);
+  const [editArchiveForm, setEditArchiveForm] = useState(null);
 
   const setForm = (key, patch) => {
     setForms((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
+  };
+
+  const getCurrentIssueArticleOptions = (selectedIds = []) => {
+    const selected = new Set(selectedIds.map((id) => String(id)));
+    const available = new Set(allItems.articlesInPress.map((article) => String(article._id)));
+    return allItems.articles.filter((article) => selected.has(String(article._id)) || available.has(String(article._id)));
   };
 
   const load = async () => {
@@ -334,14 +345,32 @@ export const AdminJournalManagePage = () => {
     }
   };
 
+  const beginArticleEdit = (item) => {
+    setEditing({ type: "article", id: item._id });
+    setEditArticleForm({
+      type: item.type || "Research",
+      title: item.title || "",
+      authors: item.authors || "",
+      abstract: item.abstract || "",
+      external_link: item.external_link || "",
+      doi_link: item.doi_link || "",
+      file: null
+    });
+  };
+
   const updateArticle = async (item) => {
-    const title = window.prompt("Update title", item.title);
-    if (!title) return;
+    const data = new FormData();
+    Object.entries(editArticleForm).forEach(([key, value]) => {
+      if (key !== "file") data.append(key, value);
+    });
+    if (editArticleForm.file) data.append("file", editArticleForm.file);
     try {
       setError("");
       setInfo("");
-      await http.put(`/content/articles/${item._id}`, { title });
+      await http.put(`/content/articles-in-press/${item._id}`, data);
       await load();
+      setEditing(null);
+      setEditArticleForm(null);
       setInfo("Article updated successfully.");
       window.alert("Article updated successfully.");
     } catch (err) {
@@ -370,14 +399,27 @@ export const AdminJournalManagePage = () => {
     }
   };
 
+  const beginBoardMemberEdit = (item) => {
+    setEditing({ type: "boardMember", id: item._id });
+    setEditBoardMemberForm({
+      name: item.name || "",
+      description: item.description || "",
+      image: null
+    });
+  };
+
   const updateBoardMember = async (item) => {
-    const name = window.prompt("Update name", item.name);
-    if (!name) return;
+    const data = new FormData();
+    data.append("name", editBoardMemberForm.name);
+    data.append("description", editBoardMemberForm.description);
+    if (editBoardMemberForm.image) data.append("image", editBoardMemberForm.image);
     try {
       setError("");
       setInfo("");
-      await http.put(`/content/board-members/${item._id}`, { name });
+      await http.put(`/content/board-members/${item._id}`, data);
       await load();
+      setEditing(null);
+      setEditBoardMemberForm(null);
       setInfo("Board member updated successfully.");
       window.alert("Board member updated successfully.");
     } catch (err) {
@@ -407,14 +449,22 @@ export const AdminJournalManagePage = () => {
     }
   };
 
+  const beginCurrentIssueEdit = (item) => {
+    setEditing({ type: "currentIssue", id: item._id });
+    setEditCurrentIssueForm({
+      volume_title: item.volume_title || "",
+      article_ids: (item.article_items || []).map((article) => article._id)
+    });
+  };
+
   const updateCurrentIssue = async (item) => {
-    const volume_title = window.prompt("Update volume title", item.volume_title);
-    if (!volume_title) return;
     try {
       setError("");
       setInfo("");
-      await http.put(`/content/current-issues/${item._id}`, { volume_title });
+      await http.put(`/content/current-issues/${item._id}`, editCurrentIssueForm);
       await load();
+      setEditing(null);
+      setEditCurrentIssueForm(null);
       setInfo("Current issue updated successfully.");
       window.alert("Current issue updated successfully.");
     } catch (err) {
@@ -444,14 +494,26 @@ export const AdminJournalManagePage = () => {
     }
   };
 
+  const beginArchiveEdit = (item) => {
+    setEditing({ type: "archive", id: item._id });
+    setEditArchiveForm({
+      year: item.year || "",
+      volume_title: item.volume_title || "",
+      article_ids: (item.article_items || []).map((article) => article._id)
+    });
+  };
+
   const updateArchiveVolume = async (item) => {
-    const year = archiveYears[item._id];
-    if (!year) return;
     try {
       setError("");
       setInfo("");
-      await http.put(`/content/archive-volumes/${item._id}`, { year: Number(year) });
+      await http.put(`/content/archive-volumes/${item._id}`, {
+        ...editArchiveForm,
+        year: Number(editArchiveForm.year)
+      });
       await load();
+      setEditing(null);
+      setEditArchiveForm(null);
       setInfo("Archive year updated successfully.");
       window.alert("Archive year updated successfully.");
     } catch (err) {
@@ -825,12 +887,17 @@ export const AdminJournalManagePage = () => {
             <button className="primary-btn" type="submit">Create Board Member</button>
           </form>
           {allItems.boardMembers.map((item) => (
-            <div className="item-row" key={item._id}>
-              <span>{item.name}</span>
-              <div className="actions">
-                <button type="button" onClick={() => updateBoardMember(item)}>Edit</button>
-                <button className="danger-btn" type="button" onClick={() => remove("board-members", item._id)}>Delete</button>
-              </div>
+            <div className={`item-row ${editing?.type === "boardMember" && editing.id === item._id ? "admin-edit-row" : ""}`} key={item._id}>
+              {editing?.type === "boardMember" && editing.id === item._id ? (
+                <form className="form-grid" onSubmit={(e) => { e.preventDefault(); updateBoardMember(item); }} style={{ width: "100%" }}>
+                  <input required value={editBoardMemberForm.name} onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, name: e.target.value }))} />
+                  <textarea value={editBoardMemberForm.description} onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, description: e.target.value }))} />
+                  <label>Replace photo<input type="file" accept="image/*" onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, image: e.target.files?.[0] || null }))} /></label>
+                  <div className="actions"><button className="primary-btn" type="submit">Save</button><button type="button" onClick={() => { setEditing(null); setEditBoardMemberForm(null); }}>Cancel</button></div>
+                </form>
+              ) : (
+                <><span>{item.name}</span><div className="actions"><button type="button" onClick={() => beginBoardMemberEdit(item)}>Edit</button><button className="danger-btn" type="button" onClick={() => remove("board-members", item._id)}>Delete</button></div></>
+              )}
             </div>
           ))}
         </section>
@@ -890,19 +957,32 @@ export const AdminJournalManagePage = () => {
             <button className="primary-btn" type="submit">Create Article</button>
           </form>
           <div className="panel-header" style={{ marginTop: "2rem" }}>
-            <h3>All Articles</h3>
+            <h3>Articles In Press</h3>
           </div>
           {allItems.articles.length > 0 ? (
             allItems.articles.map((item) => (
-              <div className="item-row" key={item._id}>
-                <div>
-                  <strong>{item.title}</strong>
-                  <p className="muted-line" style={{ margin: "0.3rem 0 0" }}>{item.authors}</p>
-                </div>
-                <div className="actions">
-                  <button type="button" onClick={() => updateArticle(item)}>Edit</button>
-                  <button className="danger-btn" type="button" onClick={() => remove("articles", item._id)}>Delete</button>
-                </div>
+              <div className={`item-row ${editing?.type === "article" && editing.id === item._id ? "admin-edit-row" : ""}`} key={item._id}>
+                {editing?.type === "article" && editing.id === item._id ? (
+                  <form className="form-grid" onSubmit={(e) => { e.preventDefault(); updateArticle(item); }} style={{ width: "100%" }}>
+                    <select required value={editArticleForm.type} onChange={(e) => setEditArticleForm((prev) => ({ ...prev, type: e.target.value }))}>
+                      <option>Research</option>
+                      <option>Review</option>
+                      <option>Case Study</option>
+                      <option>Short Communication</option>
+                      <option>Editorial</option>
+                      <option>Other</option>
+                    </select>
+                    <input required placeholder="Title" value={editArticleForm.title} onChange={(e) => setEditArticleForm((prev) => ({ ...prev, title: e.target.value }))} />
+                    <input required placeholder="Authors" value={editArticleForm.authors} onChange={(e) => setEditArticleForm((prev) => ({ ...prev, authors: e.target.value }))} />
+                    <textarea required placeholder="Abstract" value={editArticleForm.abstract} onChange={(e) => setEditArticleForm((prev) => ({ ...prev, abstract: e.target.value }))} />
+                    <input placeholder="External link" value={editArticleForm.external_link} onChange={(e) => setEditArticleForm((prev) => ({ ...prev, external_link: e.target.value }))} />
+                    <input placeholder="DOI link" value={editArticleForm.doi_link} onChange={(e) => setEditArticleForm((prev) => ({ ...prev, doi_link: e.target.value }))} />
+                    <label>Replace PDF<input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setEditArticleForm((prev) => ({ ...prev, file: e.target.files?.[0] || null }))} /></label>
+                    <div className="actions"><button className="primary-btn" type="submit">Save</button><button type="button" onClick={() => { setEditing(null); setEditArticleForm(null); }}>Cancel</button></div>
+                  </form>
+                ) : (
+                  <><div><strong>{item.title}</strong><p className="muted-line" style={{ margin: "0.3rem 0 0" }}>{item.authors}</p></div><div className="actions"><button type="button" onClick={() => beginArticleEdit(item)}>Edit</button><button className="danger-btn" type="button" onClick={() => remove("articles", item._id)}>Delete</button></div></>
+                )}
               </div>
             ))
           ) : (
@@ -977,12 +1057,20 @@ export const AdminJournalManagePage = () => {
             <button className="primary-btn" type="submit">Create Current Issue</button>
           </form>
           {allItems.currentIssues.map((item) => (
-            <div className="item-row" key={item._id}>
-              <span>{item.volume_title}</span>
-              <div className="actions">
-                <button type="button" onClick={() => updateCurrentIssue(item)}>Edit</button>
-                <button className="danger-btn" type="button" onClick={() => remove("current-issues", item._id)}>Delete</button>
-              </div>
+            <div className={`item-row ${editing?.type === "currentIssue" && editing.id === item._id ? "admin-edit-row" : ""}`} key={item._id}>
+              {editing?.type === "currentIssue" && editing.id === item._id ? (
+                <form className="form-grid" onSubmit={(e) => { e.preventDefault(); updateCurrentIssue(item); }} style={{ width: "100%" }}>
+                  <input required value={editCurrentIssueForm.volume_title} onChange={(e) => setEditCurrentIssueForm((prev) => ({ ...prev, volume_title: e.target.value }))} />
+                  <label>Select articles in this issue
+                    <select multiple value={editCurrentIssueForm.article_ids} onChange={(e) => setEditCurrentIssueForm((prev) => ({ ...prev, article_ids: Array.from(e.target.selectedOptions, (option) => option.value) }))} style={{ minHeight: "120px" }}>
+                      {getCurrentIssueArticleOptions(editCurrentIssueForm.article_ids).map((article) => <option key={article._id} value={article._id}>{article.title} ({article.authors})</option>)}
+                    </select>
+                  </label>
+                  <div className="actions"><button className="primary-btn" type="submit">Save</button><button type="button" onClick={() => { setEditing(null); setEditCurrentIssueForm(null); }}>Cancel</button></div>
+                </form>
+              ) : (
+                <><span>{item.volume_title}</span><div className="actions"><button type="button" onClick={() => beginCurrentIssueEdit(item)}>Edit</button><button className="danger-btn" type="button" onClick={() => remove("current-issues", item._id)}>Delete</button></div></>
+              )}
             </div>
           ))}
         </section>
@@ -994,26 +1082,21 @@ export const AdminJournalManagePage = () => {
           {allItems.archiveVolumes.length ? allItems.archiveVolumes.map((volume) => {
             const issue = allItems.currentIssues.find((item) => String(item._id) === String(volume.current_issue_id));
             return (
-              <div className="item-row" key={volume._id}>
-                <div>
-                  <strong>{issue?.volume_title || volume.volume_title}</strong>
-                  <p className="muted-line" style={{ margin: "0.3rem 0 0" }}>
-                    {volume.article_items?.length || 0} article(s)
-                  </p>
-                </div>
-                <div className="actions">
-                  <input
-                    type="number"
-                    min="1950"
-                    max="2100"
-                    required
-                    placeholder="Archive year"
-                    value={archiveYears[volume._id] || ""}
-                    onChange={(e) => setArchiveYears((prev) => ({ ...prev, [volume._id]: e.target.value }))}
-                  />
-                  <button type="button" onClick={() => updateArchiveVolume(volume)}>Update Year</button>
-                  <button className="danger-btn" type="button" onClick={() => remove("archive-volumes", volume._id)}>Delete</button>
-                </div>
+              <div className={`item-row ${editing?.type === "archive" && editing.id === volume._id ? "admin-edit-row" : ""}`} key={volume._id}>
+                {editing?.type === "archive" && editing.id === volume._id ? (
+                  <form className="form-grid" onSubmit={(e) => { e.preventDefault(); updateArchiveVolume(volume); }} style={{ width: "100%" }}>
+                    <input type="number" min="1950" max="2100" required value={editArchiveForm.year} onChange={(e) => setEditArchiveForm((prev) => ({ ...prev, year: e.target.value }))} />
+                    <input required value={editArchiveForm.volume_title} onChange={(e) => setEditArchiveForm((prev) => ({ ...prev, volume_title: e.target.value }))} />
+                    <label>Select articles in this volume
+                      <select multiple value={editArchiveForm.article_ids} onChange={(e) => setEditArchiveForm((prev) => ({ ...prev, article_ids: Array.from(e.target.selectedOptions, (option) => option.value) }))} style={{ minHeight: "120px" }}>
+                        {allItems.articles.map((article) => <option key={article._id} value={article._id}>{article.title} ({article.authors})</option>)}
+                      </select>
+                    </label>
+                    <div className="actions"><button className="primary-btn" type="submit">Save</button><button type="button" onClick={() => { setEditing(null); setEditArchiveForm(null); }}>Cancel</button></div>
+                  </form>
+                ) : (
+                  <><div><strong>{issue?.volume_title || volume.volume_title}</strong><p className="muted-line" style={{ margin: "0.3rem 0 0" }}>{volume.article_items?.length || 0} article(s)</p></div><div className="actions"><button type="button" onClick={() => beginArchiveEdit(volume)}>Edit</button><button className="danger-btn" type="button" onClick={() => remove("archive-volumes", volume._id)}>Delete</button></div></>
+                )}
               </div>
             );
           }) : <p className="muted-line">No current-issue volumes available.</p>}

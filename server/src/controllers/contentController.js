@@ -155,6 +155,26 @@ export const createArticleInPress = asyncHandler(async (req, res) => {
   res.status(201).json({ inPress });
 });
 
+export const updateArticleInPress = asyncHandler(async (req, res) => {
+  const article = await Article.findById(getValidatedObjectId(req.params.id, "article"));
+  if (!article) return res.status(404).json({ message: "Article not found" });
+
+  Object.assign(article, req.body);
+  if (req.file?.buffer) {
+    const upload = await uploadBufferToCloudinary(req.file.buffer, {
+      folder: "journals/articles",
+      resource_type: "raw"
+    });
+    await safeDestroy(article.pdf_public_id, "raw");
+    article.pdf_url = upload.secure_url;
+    article.pdf_public_id = upload.public_id;
+    article.format = req.file.mimetype;
+  }
+
+  await article.save();
+  res.status(200).json({ article });
+});
+
 export const deleteArticleInPress = asyncHandler(async (req, res) => {
   const inPress = await ArticleInPress.findById(getValidatedObjectId(req.params.id, "article in press"));
   if (!inPress) return res.status(404).json({ message: "Article in press not found" });
@@ -277,6 +297,19 @@ export const createCurrentIssue = asyncHandler(async (req, res) => {
     throw err;
   }
 
+  const currentIssueVolumeIds = await ArchiveVolume.distinct("_id", {
+    current_issue_id: { $exists: true, $ne: null }
+  });
+  const [alreadyAssigned, alreadyArchived] = await Promise.all([
+    CurrentIssueArticle.findOne({ article_id: { $in: article_ids } }),
+    ArchiveArticle.findOne({ volume_id: { $in: currentIssueVolumeIds }, article_id: { $in: article_ids } })
+  ]);
+  if (alreadyAssigned || alreadyArchived) {
+    const err = new Error("One or more selected articles already belongs to a current issue");
+    err.statusCode = 400;
+    throw err;
+  }
+
   const issue = await CurrentIssue.create({
     journal_id: req.body.journal_id,
     volume_title: req.body.volume_title
@@ -302,13 +335,58 @@ export const updateCurrentIssue = asyncHandler(async (req, res) => {
   if (!issue) return res.status(404).json({ message: "Current issue not found" });
 
   if (req.body.volume_title) issue.volume_title = req.body.volume_title;
-  
+
   await issue.save();
   if (req.body.volume_title) {
     await ArchiveVolume.updateMany(
       { current_issue_id: issue._id },
       { $set: { volume_title: req.body.volume_title } }
     );
+  }
+
+  if (Object.prototype.hasOwnProperty.call(req.body, "article_ids")) {
+    const article_ids = parseIds(req.body.article_ids);
+    const articles = await Article.find({ _id: { $in: article_ids }, journal_id: issue.journal_id });
+    if (articles.length !== article_ids.length) {
+      const err = new Error("One or more selected articles were not found for this journal");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const currentIssueVolume = await ArchiveVolume.findOne({ current_issue_id: issue._id });
+    const otherCurrentIssueVolumeIds = await ArchiveVolume.distinct("_id", {
+      current_issue_id: { $exists: true, $nin: [null, issue._id] }
+    });
+    const [alreadyAssigned, alreadyArchived] = await Promise.all([
+      CurrentIssueArticle.findOne({
+        article_id: { $in: article_ids },
+        issue_id: { $ne: issue._id }
+      }),
+      ArchiveArticle.findOne({
+        volume_id: { $in: otherCurrentIssueVolumeIds },
+        article_id: { $in: article_ids }
+      })
+    ]);
+    if (alreadyAssigned || alreadyArchived) {
+      const err = new Error("One or more selected articles already belongs to another current issue");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    await CurrentIssueArticle.deleteMany({ issue_id: issue._id });
+    if (currentIssueVolume) {
+      await ArchiveArticle.deleteMany({ volume_id: currentIssueVolume._id });
+    }
+    if (article_ids.length) {
+      const links = article_ids.map((article_id) => ({ issue_id: issue._id, article_id }));
+      await CurrentIssueArticle.insertMany(links);
+      if (currentIssueVolume) {
+        await ArchiveArticle.insertMany(
+          article_ids.map((article_id) => ({ volume_id: currentIssueVolume._id, article_id }))
+        );
+      }
+      await ArticleInPress.deleteMany({ article_id: { $in: article_ids } });
+    }
   }
 
   const hydrated = await attachIssueArticles([issue]);
@@ -380,18 +458,57 @@ export const updateArchiveVolume = asyncHandler(async (req, res) => {
   const volume = await ArchiveVolume.findById(getValidatedObjectId(req.params.id, "archive volume"));
   if (!volume) return res.status(404).json({ message: "Archive volume not found" });
 
+  const article_ids = Object.prototype.hasOwnProperty.call(req.body, "article_ids")
+    ? parseIds(req.body.article_ids)
+    : null;
+  if (volume.current_issue_id && article_ids) {
+    const articles = await Article.find({ _id: { $in: article_ids }, journal_id: volume.journal_id });
+    if (articles.length !== article_ids.length) {
+      const err = new Error("One or more selected articles were not found for this journal");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const otherCurrentIssueVolumeIds = await ArchiveVolume.distinct("_id", {
+      current_issue_id: { $exists: true, $nin: [null, volume.current_issue_id] }
+    });
+    const [alreadyAssigned, alreadyArchived] = await Promise.all([
+      CurrentIssueArticle.findOne({
+        article_id: { $in: article_ids },
+        issue_id: { $ne: volume.current_issue_id }
+      }),
+      ArchiveArticle.findOne({
+        volume_id: { $in: otherCurrentIssueVolumeIds },
+        article_id: { $in: article_ids }
+      })
+    ]);
+    if (alreadyAssigned || alreadyArchived) {
+      const err = new Error("One or more selected articles already belongs to another current issue");
+      err.statusCode = 400;
+      throw err;
+    }
+  }
+
   if (req.body.journal_id) volume.journal_id = req.body.journal_id;
   if (Object.prototype.hasOwnProperty.call(req.body, "year")) volume.year = getArchiveYear(req.body.year);
   if (req.body.volume_title) volume.volume_title = req.body.volume_title;
   await volume.save();
 
-  if (Object.prototype.hasOwnProperty.call(req.body, "article_ids")) {
-    const article_ids = parseIds(req.body.article_ids);
+  if (article_ids) {
     await ArchiveArticle.deleteMany({ volume_id: volume._id });
     if (article_ids.length) {
       await ArchiveArticle.insertMany(
         article_ids.map((article_id) => ({ volume_id: volume._id, article_id }))
       );
+    }
+    if (volume.current_issue_id) {
+      await CurrentIssueArticle.deleteMany({ issue_id: volume.current_issue_id });
+      if (article_ids.length) {
+        await CurrentIssueArticle.insertMany(
+          article_ids.map((article_id) => ({ issue_id: volume.current_issue_id, article_id }))
+        );
+        await ArticleInPress.deleteMany({ article_id: { $in: article_ids } });
+      }
     }
   }
 
