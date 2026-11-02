@@ -97,12 +97,12 @@ export const PublicHeader = () => {
         <div className="top-bar-content">
           <div className="contact">
             <span>
-              <i className="fa-solid fa-envelope" />
-              contact@skyopenaccesspublishers.com
-            </span>
-            <span>
               <i className="fa-solid fa-phone" />
               +1 212-555-0173
+            </span>
+            <span>
+              <i className="fa-solid fa-envelope" />
+              contact@skyopenaccesspublishers.com
             </span>
           </div>
 

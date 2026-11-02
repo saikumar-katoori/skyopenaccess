@@ -37,6 +37,7 @@ import {
   listVideos,
   updateArchiveVolume,
   updateArticle,
+  updateArticleInPress,
   updateBoardMember,
   updateCurrentIssue,
   updateIndexingLogo,
@@ -60,6 +61,7 @@ router.delete("/articles/:id", protect, adminOnly, deleteArticle);
 
 router.get("/articles-in-press", listArticlesInPress);
 router.post("/articles-in-press", protect, adminOnly, createArticleInPress);
+router.put("/articles-in-press/:id", protect, adminOnly, documentUpload.single("file"), updateArticleInPress);
 router.delete("/articles-in-press/:id", protect, adminOnly, deleteArticleInPress);
 
 router.get("/board-members", listBoardMembers);
