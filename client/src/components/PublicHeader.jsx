@@ -97,12 +97,12 @@ export const PublicHeader = () => {
         <div className="top-bar-content">
           <div className="contact">
             <span>
-              <i className="fa-solid fa-phone" />
-              +1 212-555-0173
-            </span>
-            <span>
               <i className="fa-solid fa-envelope" />
               contact@skyopenaccesspublishers.com
+            </span>
+            <span>
+              <i className="fa-solid fa-phone" />
+              +1 212-555-0173
             </span>
           </div>
 
@@ -154,7 +154,7 @@ export const PublicHeader = () => {
 
         <div className="nav-content">
           <NavLink to="/" className="logo-link">
-            <img src="/images/sky-logo-final.png" className="logo" alt="Logo" />
+            <img src="/images/SKY-LOGO.png" className="logo" alt="Logo" />
           </NavLink>
 
           <button

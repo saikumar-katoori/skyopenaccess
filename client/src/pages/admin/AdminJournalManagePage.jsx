@@ -69,6 +69,10 @@ export const AdminJournalManagePage = () => {
   // --- Edit modal state ---
   const [editingArticle, setEditingArticle] = useState(null);
   const [editArticleForm, setEditArticleForm] = useState({ title: "", file: null });
+  const [editingBoardMember, setEditingBoardMember] = useState(null);
+  const [editBoardMemberForm, setEditBoardMemberForm] = useState({ name: "", description: "", image: null });
+  const [editingCurrentIssue, setEditingCurrentIssue] = useState(null);
+  const [editCurrentIssueForm, setEditCurrentIssueForm] = useState({ volume_title: "", article_ids: [], file: null });
   const [editingPpt, setEditingPpt] = useState(null);
   const [editPptForm, setEditPptForm] = useState({ title: "", file: null });
   const [editSaving, setEditSaving] = useState(false);
@@ -396,19 +400,39 @@ export const AdminJournalManagePage = () => {
     }
   };
 
-  const updateBoardMember = async (item) => {
-    const name = window.prompt("Update name", item.name);
-    if (!name) return;
+  const openBoardMemberEdit = (item) => {
+    setEditingBoardMember(item);
+    setEditBoardMemberForm({ name: item.name || "", description: item.description || "", image: null });
+  };
+
+  const closeBoardMemberEdit = () => {
+    setEditingBoardMember(null);
+    setEditBoardMemberForm({ name: "", description: "", image: null });
+  };
+
+  const submitBoardMemberEdit = async (e) => {
+    e.preventDefault();
+    if (!editingBoardMember) return;
+    setEditSaving(true);
     try {
       setError("");
       setInfo("");
-      await http.put(`/content/board-members/${item._id}`, { name });
+      const data = new FormData();
+      data.append("name", editBoardMemberForm.name);
+      data.append("description", editBoardMemberForm.description);
+      if (editBoardMemberForm.image) {
+        data.append("image", editBoardMemberForm.image);
+      }
+      await http.put(`/content/board-members/${editingBoardMember._id}`, data);
       await load();
+      closeBoardMemberEdit();
       setInfo("Board member updated successfully.");
       window.alert("Board member updated successfully.");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update board member");
       window.alert(err.response?.data?.message || "Failed to update board member");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -433,19 +457,54 @@ export const AdminJournalManagePage = () => {
     }
   };
 
-  const updateCurrentIssue = async (item) => {
-    const volume_title = window.prompt("Update volume title", item.volume_title);
-    if (!volume_title) return;
+  const openCurrentIssueEdit = (item) => {
+    setEditingCurrentIssue(item);
+    setEditCurrentIssueForm({
+      volume_title: item.volume_title || "",
+      article_ids: item.article_items?.map((art) => art._id) || [],
+      file: null
+    });
+  };
+
+  const closeCurrentIssueEdit = () => {
+    setEditingCurrentIssue(null);
+    setEditCurrentIssueForm({ volume_title: "", article_ids: [], file: null });
+  };
+
+  const submitCurrentIssueEdit = async (e) => {
+    e.preventDefault();
+    if (!editingCurrentIssue) return;
+    setEditSaving(true);
     try {
       setError("");
       setInfo("");
-      await http.put(`/content/current-issues/${item._id}`, { volume_title });
+      let finalArticleIds = [...editCurrentIssueForm.article_ids];
+      if (editCurrentIssueForm.file) {
+        const fileData = new FormData();
+        fileData.append("title", `${editCurrentIssueForm.volume_title} Document`);
+        fileData.append("authors", "Editorial");
+        fileData.append("abstract", "Attached file for issue");
+        fileData.append("type", "Editorial");
+        fileData.append("journal_id", journalId || editingCurrentIssue.journal_id);
+        fileData.append("file", editCurrentIssueForm.file);
+        const artRes = await http.post("/content/articles", fileData);
+        if (artRes.data?.article?._id) {
+          finalArticleIds.push(artRes.data.article._id);
+        }
+      }
+      await http.put(`/content/current-issues/${editingCurrentIssue._id}`, {
+        volume_title: editCurrentIssueForm.volume_title,
+        article_ids: finalArticleIds
+      });
       await load();
+      closeCurrentIssueEdit();
       setInfo("Current issue updated successfully.");
       window.alert("Current issue updated successfully.");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update current issue");
       window.alert(err.response?.data?.message || "Failed to update current issue");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -873,7 +932,7 @@ export const AdminJournalManagePage = () => {
             <div className="item-row" key={item._id}>
               <span>{item.name}</span>
               <div className="actions">
-                <button type="button" onClick={() => updateBoardMember(item)}>Edit</button>
+                <button type="button" onClick={() => openBoardMemberEdit(item)}>Edit</button>
                 <button className="danger-btn" type="button" onClick={() => remove("board-members", item._id)}>Delete</button>
               </div>
             </div>
@@ -1025,7 +1084,7 @@ export const AdminJournalManagePage = () => {
             <div className="item-row" key={item._id}>
               <span>{item.volume_title}</span>
               <div className="actions">
-                <button type="button" onClick={() => updateCurrentIssue(item)}>Edit</button>
+                <button type="button" onClick={() => openCurrentIssueEdit(item)}>Edit</button>
                 <button className="danger-btn" type="button" onClick={() => remove("current-issues", item._id)}>Delete</button>
               </div>
             </div>
@@ -1226,6 +1285,137 @@ export const AdminJournalManagePage = () => {
               </label>
               <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
                 <button type="button" className="secondary-btn" onClick={closePptEdit} disabled={editSaving}>Cancel</button>
+                <button type="submit" className="primary-btn" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {/* ---- Board Member Edit Modal ---- */}
+      {editingBoardMember ? (
+        <div className="crop-modal" role="dialog" aria-modal="true">
+          <div className="crop-modal__backdrop" onClick={closeBoardMemberEdit} />
+          <div className="crop-modal__panel" style={{ gridTemplateRows: "auto 1fr auto" }}>
+            <div className="crop-modal__header">
+              <h3>Edit Board Member</h3>
+              <button type="button" className="secondary-btn" onClick={closeBoardMemberEdit}>Close</button>
+            </div>
+            <form onSubmit={submitBoardMemberEdit} style={{ display: "grid", gap: "1rem", padding: "1.2rem 1.4rem" }}>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Name</span>
+                <input
+                  required
+                  value={editBoardMemberForm.name}
+                  onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Description</span>
+                <textarea
+                  value={editBoardMemberForm.description}
+                  onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Board member description..."
+                />
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Replace Image / Photo (optional)</span>
+                {editingBoardMember.image_url ? (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>
+                    Current file: <a href={editingBoardMember.image_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>View existing image</a>
+                  </span>
+                ) : (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>No image currently uploaded.</span>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, image: e.target.files?.[0] || null }))}
+                />
+                {editBoardMemberForm.image ? (
+                  <span style={{ fontSize: "0.85rem", color: "green" }}>New file selected: {editBoardMemberForm.image.name}</span>
+                ) : null}
+              </label>
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                <button type="button" className="secondary-btn" onClick={closeBoardMemberEdit} disabled={editSaving}>Cancel</button>
+                <button type="submit" className="primary-btn" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {/* ---- Current Issue Edit Modal ---- */}
+      {editingCurrentIssue ? (
+        <div className="crop-modal" role="dialog" aria-modal="true">
+          <div className="crop-modal__backdrop" onClick={closeCurrentIssueEdit} />
+          <div className="crop-modal__panel" style={{ gridTemplateRows: "auto 1fr auto" }}>
+            <div className="crop-modal__header">
+              <h3>Edit Current Issue</h3>
+              <button type="button" className="secondary-btn" onClick={closeCurrentIssueEdit}>Close</button>
+            </div>
+            <form onSubmit={submitCurrentIssueEdit} style={{ display: "grid", gap: "1rem", padding: "1.2rem 1.4rem" }}>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Volume Title</span>
+                <input
+                  required
+                  value={editCurrentIssueForm.volume_title}
+                  onChange={(e) => setEditCurrentIssueForm((prev) => ({ ...prev, volume_title: e.target.value }))}
+                />
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Existing File(s) / PDF(s)</span>
+                {editingCurrentIssue.article_items && editingCurrentIssue.article_items.length > 0 ? (
+                  <div style={{ display: "grid", gap: "0.3rem" }}>
+                    {editingCurrentIssue.article_items.map((art) => (
+                      <span key={art._id} className="muted-line" style={{ fontSize: "0.85rem" }}>
+                        {art.title}: {art.pdf_url ? (
+                          <a href={art.pdf_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>View existing PDF</a>
+                        ) : "No PDF file"}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>No existing files/articles attached.</span>
+                )}
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Upload / Replace File (optional)</span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => setEditCurrentIssueForm((prev) => ({ ...prev, file: e.target.files?.[0] || null }))}
+                />
+                {editCurrentIssueForm.file ? (
+                  <span style={{ fontSize: "0.85rem", color: "green" }}>New file selected: {editCurrentIssueForm.file.name}</span>
+                ) : null}
+              </label>
+              {allItems.articlesInPress && allItems.articlesInPress.length > 0 ? (
+                <label style={{ display: "grid", gap: "0.4rem" }}>
+                  <span style={{ fontWeight: 600 }}>Select Articles In Press (Hold Ctrl/Cmd to select multiple)</span>
+                  <select
+                    multiple
+                    value={editCurrentIssueForm.article_ids}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, (opt) => opt.value);
+                      setEditCurrentIssueForm((prev) => ({ ...prev, article_ids: selected }));
+                    }}
+                    style={{ minHeight: "100px" }}
+                  >
+                    {allItems.articlesInPress.map((article) => (
+                      <option key={article._id} value={article._id}>
+                        {article.title} ({article.authors})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                <button type="button" className="secondary-btn" onClick={closeCurrentIssueEdit} disabled={editSaving}>Cancel</button>
                 <button type="submit" className="primary-btn" disabled={editSaving}>
                   {editSaving ? "Saving..." : "Save Changes"}
                 </button>
