@@ -376,6 +376,8 @@ export const AdminJournalManagePage = () => {
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update article");
       window.alert(err.response?.data?.message || "Failed to update article");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -425,6 +427,8 @@ export const AdminJournalManagePage = () => {
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update board member");
       window.alert(err.response?.data?.message || "Failed to update board member");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -470,6 +474,8 @@ export const AdminJournalManagePage = () => {
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update current issue");
       window.alert(err.response?.data?.message || "Failed to update current issue");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -582,19 +588,38 @@ export const AdminJournalManagePage = () => {
     }
   };
 
-  const updatePpt = async (item) => {
-    const title = window.prompt("Update title", item.title);
-    if (!title) return;
+  const openPptEdit = (item) => {
+    setEditingPpt(item);
+    setEditPptForm({ title: item.title, file: null });
+  };
+
+  const closePptEdit = () => {
+    setEditingPpt(null);
+    setEditPptForm({ title: "", file: null });
+  };
+
+  const submitPptEdit = async (e) => {
+    e.preventDefault();
+    if (!editingPpt) return;
+    setEditSaving(true);
     try {
       setError("");
       setInfo("");
-      await http.put(`/content/ppts/${item._id}`, { title });
+      const data = new FormData();
+      data.append("title", editPptForm.title);
+      if (editPptForm.file) {
+        data.append("file", editPptForm.file);
+      }
+      await http.put(`/content/ppts/${editingPpt._id}`, data);
       await load();
+      closePptEdit();
       setInfo("PPT updated successfully.");
       window.alert("PPT updated successfully.");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update PPT");
       window.alert(err.response?.data?.message || "Failed to update PPT");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -1125,7 +1150,7 @@ export const AdminJournalManagePage = () => {
             <div className="item-row" key={item._id}>
               <span>{item.title}</span>
               <div className="actions">
-                <button type="button" onClick={() => updatePpt(item)}>Edit</button>
+                <button type="button" onClick={() => openPptEdit(item)}>Edit</button>
                 <button className="danger-btn" type="button" onClick={() => remove("ppts", item._id)}>Delete</button>
               </div>
             </div>
@@ -1178,6 +1203,230 @@ export const AdminJournalManagePage = () => {
             </div>
           ))}
         </section>
+      ) : null}
+
+      {/* ---- Article Edit Modal ---- */}
+      {editingArticle ? (
+        <div className="crop-modal" role="dialog" aria-modal="true">
+          <div className="crop-modal__backdrop" onClick={closeArticleEdit} />
+          <div className="crop-modal__panel" style={{ gridTemplateRows: "auto 1fr auto" }}>
+            <div className="crop-modal__header">
+              <h3>Edit Article</h3>
+              <button type="button" className="secondary-btn" onClick={closeArticleEdit}>Close</button>
+            </div>
+            <form onSubmit={submitArticleEdit} style={{ display: "grid", gap: "1rem", padding: "1.2rem 1.4rem" }}>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Title</span>
+                <input
+                  required
+                  value={editArticleForm.title}
+                  onChange={(e) => setEditArticleForm((prev) => ({ ...prev, title: e.target.value }))}
+                />
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Replace PDF (optional)</span>
+                {editingArticle.pdf_url ? (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>
+                    Current file: <a href={editingArticle.pdf_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>View existing PDF</a>
+                  </span>
+                ) : (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>No PDF currently uploaded.</span>
+                )}
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => setEditArticleForm((prev) => ({ ...prev, file: e.target.files?.[0] || null }))}
+                />
+                {editArticleForm.file ? (
+                  <span style={{ fontSize: "0.85rem", color: "green" }}>New file selected: {editArticleForm.file.name}</span>
+                ) : null}
+              </label>
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                <button type="button" className="secondary-btn" onClick={closeArticleEdit} disabled={editSaving}>Cancel</button>
+                <button type="submit" className="primary-btn" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {/* ---- PPT Edit Modal ---- */}
+      {editingPpt ? (
+        <div className="crop-modal" role="dialog" aria-modal="true">
+          <div className="crop-modal__backdrop" onClick={closePptEdit} />
+          <div className="crop-modal__panel" style={{ gridTemplateRows: "auto 1fr auto" }}>
+            <div className="crop-modal__header">
+              <h3>Edit PPT</h3>
+              <button type="button" className="secondary-btn" onClick={closePptEdit}>Close</button>
+            </div>
+            <form onSubmit={submitPptEdit} style={{ display: "grid", gap: "1rem", padding: "1.2rem 1.4rem" }}>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Title</span>
+                <input
+                  required
+                  value={editPptForm.title}
+                  onChange={(e) => setEditPptForm((prev) => ({ ...prev, title: e.target.value }))}
+                />
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Replace PPT / PDF File (optional)</span>
+                {editingPpt.file_url ? (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>
+                    Current file: <a href={editingPpt.file_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>View existing file</a>
+                  </span>
+                ) : (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>No file currently uploaded.</span>
+                )}
+                <input
+                  type="file"
+                  onChange={(e) => setEditPptForm((prev) => ({ ...prev, file: e.target.files?.[0] || null }))}
+                />
+                {editPptForm.file ? (
+                  <span style={{ fontSize: "0.85rem", color: "green" }}>New file selected: {editPptForm.file.name}</span>
+                ) : null}
+              </label>
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                <button type="button" className="secondary-btn" onClick={closePptEdit} disabled={editSaving}>Cancel</button>
+                <button type="submit" className="primary-btn" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {/* ---- Board Member Edit Modal ---- */}
+      {editingBoardMember ? (
+        <div className="crop-modal" role="dialog" aria-modal="true">
+          <div className="crop-modal__backdrop" onClick={closeBoardMemberEdit} />
+          <div className="crop-modal__panel" style={{ gridTemplateRows: "auto 1fr auto" }}>
+            <div className="crop-modal__header">
+              <h3>Edit Board Member</h3>
+              <button type="button" className="secondary-btn" onClick={closeBoardMemberEdit}>Close</button>
+            </div>
+            <form onSubmit={submitBoardMemberEdit} style={{ display: "grid", gap: "1rem", padding: "1.2rem 1.4rem" }}>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Name</span>
+                <input
+                  required
+                  value={editBoardMemberForm.name}
+                  onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Description</span>
+                <textarea
+                  value={editBoardMemberForm.description}
+                  onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Board member description..."
+                />
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Replace Image / Photo (optional)</span>
+                {editingBoardMember.image_url ? (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>
+                    Current file: <a href={editingBoardMember.image_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>View existing image</a>
+                  </span>
+                ) : (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>No image currently uploaded.</span>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditBoardMemberForm((prev) => ({ ...prev, image: e.target.files?.[0] || null }))}
+                />
+                {editBoardMemberForm.image ? (
+                  <span style={{ fontSize: "0.85rem", color: "green" }}>New file selected: {editBoardMemberForm.image.name}</span>
+                ) : null}
+              </label>
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                <button type="button" className="secondary-btn" onClick={closeBoardMemberEdit} disabled={editSaving}>Cancel</button>
+                <button type="submit" className="primary-btn" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {/* ---- Current Issue Edit Modal ---- */}
+      {editingCurrentIssue ? (
+        <div className="crop-modal" role="dialog" aria-modal="true">
+          <div className="crop-modal__backdrop" onClick={closeCurrentIssueEdit} />
+          <div className="crop-modal__panel" style={{ gridTemplateRows: "auto 1fr auto" }}>
+            <div className="crop-modal__header">
+              <h3>Edit Current Issue</h3>
+              <button type="button" className="secondary-btn" onClick={closeCurrentIssueEdit}>Close</button>
+            </div>
+            <form onSubmit={submitCurrentIssueEdit} style={{ display: "grid", gap: "1rem", padding: "1.2rem 1.4rem" }}>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Volume Title</span>
+                <input
+                  required
+                  value={editCurrentIssueForm.volume_title}
+                  onChange={(e) => setEditCurrentIssueForm((prev) => ({ ...prev, volume_title: e.target.value }))}
+                />
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Existing File(s) / PDF(s)</span>
+                {editingCurrentIssue.article_items && editingCurrentIssue.article_items.length > 0 ? (
+                  <div style={{ display: "grid", gap: "0.3rem" }}>
+                    {editingCurrentIssue.article_items.map((art) => (
+                      <span key={art._id} className="muted-line" style={{ fontSize: "0.85rem" }}>
+                        {art.title}: {art.pdf_url ? (
+                          <a href={art.pdf_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>View existing PDF</a>
+                        ) : "No PDF file"}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="muted-line" style={{ fontSize: "0.85rem" }}>No existing files/articles attached.</span>
+                )}
+              </label>
+              <label style={{ display: "grid", gap: "0.4rem" }}>
+                <span style={{ fontWeight: 600 }}>Upload / Replace File (optional)</span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => setEditCurrentIssueForm((prev) => ({ ...prev, file: e.target.files?.[0] || null }))}
+                />
+                {editCurrentIssueForm.file ? (
+                  <span style={{ fontSize: "0.85rem", color: "green" }}>New file selected: {editCurrentIssueForm.file.name}</span>
+                ) : null}
+              </label>
+              {allItems.articlesInPress && allItems.articlesInPress.length > 0 ? (
+                <label style={{ display: "grid", gap: "0.4rem" }}>
+                  <span style={{ fontWeight: 600 }}>Select Articles In Press (Hold Ctrl/Cmd to select multiple)</span>
+                  <select
+                    multiple
+                    value={editCurrentIssueForm.article_ids}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, (opt) => opt.value);
+                      setEditCurrentIssueForm((prev) => ({ ...prev, article_ids: selected }));
+                    }}
+                    style={{ minHeight: "100px" }}
+                  >
+                    {allItems.articlesInPress.map((article) => (
+                      <option key={article._id} value={article._id}>
+                        {article.title} ({article.authors})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                <button type="button" className="secondary-btn" onClick={closeCurrentIssueEdit} disabled={editSaving}>Cancel</button>
+                <button type="submit" className="primary-btn" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       ) : null}
 
       {cropImageSrc ? (

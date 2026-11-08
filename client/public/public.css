@@ -135,7 +135,7 @@ main {
   position: absolute;
   left: 25px;
   display: flex;
-  gap: 30px;
+  gap: 20px;
 }
 
 .contact span {
@@ -348,7 +348,7 @@ main {
 }
 
 .logo {
-  height: 60px;
+  height: 80px;
   width: auto;
   display: block;
   margin-top: 0;

@@ -314,6 +314,7 @@ export const createCurrentIssue = asyncHandler(async (req, res) => {
     journal_id: req.body.journal_id,
     volume_title: req.body.volume_title
   });
+  await ArticleInPress.deleteMany({ article_id: { $in: article_ids } });
 
   await CurrentIssueArticle.insertMany(
     article_ids.map((article_id) => ({ issue_id: issue._id, article_id }))

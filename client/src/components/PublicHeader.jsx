@@ -154,7 +154,7 @@ export const PublicHeader = () => {
 
         <div className="nav-content">
           <NavLink to="/" className="logo-link">
-            <img src="/images/sky-logo-final.png" className="logo" alt="Logo" />
+            <img src="/images/SKY-LOGO.png" className="logo" alt="Logo" />
           </NavLink>
 
           <button

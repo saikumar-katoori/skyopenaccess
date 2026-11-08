@@ -1915,6 +1915,45 @@ textarea:focus {
   font-style: italic;
 }
 
+/* ===================== INDEXING TAB GRID (Journal Detail Page) ===================== */
+
+/* Grid wrapper for the Indexing tab: max 3 cards per row, never overflows left column */
+.indexing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem 0.85rem;
+  width: 100%;
+}
+
+/* Individual indexing card */
+.indexing-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem;
+  background: #ffffff;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  min-height: 72px;
+}
+
+.indexing-item:hover {
+  box-shadow: 0 4px 12px rgba(207, 114, 22, 0.1);
+  border-color: var(--accent);
+  transform: scale(1.02);
+}
+
+.indexing-item img {
+  max-width: 100%;
+  max-height: 60px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
 /* ===================== INDEXING LOGOS SECTION ===================== */
 
 .indexing-logos-section {
@@ -1962,6 +2001,24 @@ textarea:focus {
   display: block;
 }
 
+@media (max-width: 860px) {
+  /* Stack the two-column journal layout vertically on small screens */
+  .journal-layout {
+    flex-direction: column;
+  }
+
+  .journal-info-sidebar {
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 auto;
+  }
+
+  /* On small screens indexing grid goes to 2 columns */
+  .indexing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .journal-stats {
     grid-template-columns: 1fr;
@@ -1981,6 +2038,11 @@ textarea:focus {
 
   .detail-box {
     padding: 1.2rem;
+  }
+
+  /* On very small screens indexing grid goes to 1 column */
+  .indexing-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2035,7 +2097,7 @@ textarea:focus {
 
 .article-type {
   display: inline-block;
-  background: #ffdbb2;
+  background: #ff8903;
   color: #ffffff;
   padding: 0.3rem 0.7rem;
   border-radius: 6px;
@@ -2054,6 +2116,7 @@ textarea:focus {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
 
 .read-btn {
   display: inline-flex;
@@ -2090,8 +2153,15 @@ textarea:focus {
   border-color: var(--accent);
 }
 
+
 .read-btn i {
   font-size: 0.9rem;
+}
+
+.article-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
 }
 
 .issues-list,
@@ -2548,7 +2618,7 @@ textarea:focus {
 .indexing-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 5rem;
+  gap: 1.5rem;
   margin-top: 10px;
 }
 
@@ -2557,18 +2627,21 @@ textarea:focus {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 150%;
+  width: 100%;
   gap: 0.8rem;
   padding: 1rem;
   background: #ffffff;
   border: 1px solid var(--stroke);
   border-radius: 12px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .indexing-item img {
   max-width: 100%;
+  max-height: 80px;
   object-fit: contain;
+  display: block;
 }
 
 
@@ -2629,7 +2702,6 @@ textarea:focus {
     overflow-y: visible;
     padding: 0.75rem 1rem;
     top: 116px;
-    /* Offset below mobile fixed header */
     border-right: none;
     z-index: 20;
     margin-top: 0;
@@ -2643,7 +2715,6 @@ textarea:focus {
     margin-left: 0;
     margin-right: 10%;
     margin-top: 0;
-    /* Sitting below fixed header + scrollable sidebar */
     height: auto;
     max-height: none;
     overflow-y: visible;
@@ -2688,6 +2759,23 @@ textarea:focus {
   .indexing-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
+
+  @media (max-width: 768px) {
+    .about-row {
+      flex-direction: column;
+      text-align: left;
+      padding: 0 10%;
+    }
+
+    .about-text {
+      width: 100%;
+    }
+
+    .about-text p {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
 }
 
 @media (max-width: 768px) {
@@ -2713,7 +2801,7 @@ textarea:focus {
   }
 
   .journal-layout {
-    gap: 0;
+    gap: 1rem;
   }
 
   .journal-sidebar {
@@ -2802,6 +2890,7 @@ textarea:focus {
 
   .indexing-item {
     width: 100%;
+    box-sizing: border-box;
   }
 
   .article-item,
