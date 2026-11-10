@@ -98,6 +98,12 @@ export const AdminJournalManagePage = () => {
   const [editBoardMemberForm, setEditBoardMemberForm] = useState(null);
   const [editCurrentIssueForm, setEditCurrentIssueForm] = useState(null);
   const [editArchiveForm, setEditArchiveForm] = useState(null);
+  const [editingArticle, setEditingArticle] = useState(null);
+  const [editingPpt, setEditingPpt] = useState(null);
+  const [editPptForm, setEditPptForm] = useState({ title: "", file: null });
+  const [editingBoardMember, setEditingBoardMember] = useState(null);
+  const [editingCurrentIssue, setEditingCurrentIssue] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
 
   const setForm = (key, patch) => {
     setForms((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
